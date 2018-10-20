@@ -9,24 +9,45 @@ mod parser;
 mod eval;
 
 fn main() {
-    let tokens = lexer::str_to_tokens(sample_string7());
-    println!("{:?}",tokens);
-    let prog = parser::parse(&tokens);
-    println!("{:?}",prog);
-    let env = eval::eval_prog(prog);
-    println!("{:?}",env);
+    let s = "let a = 7 + aa(a,b,c) + 6 print(nn)";
+    let tokens = lexer::str_to_tokens(s);
+    println!("{:?}",s);
+    println!("{:?}",parser::parse(&tokens))
 }
 
-fn sample_string8<'a>() -> &'a str {
-    "let a = 7 + aa(1,2,3) + 6"
+#[test]
+fn sample_string8<'a>() {
+    let s = "let a = 7 + aa(1,2,3) + 6";
+    let tokens = lexer::str_to_tokens(s);
+    println!("{:?}",s);
+    println!("{:?}",parser::parse(&tokens))
 }
 
-fn sample_string7<'a>() -> &'a str {
-    "function huga(foo Int) Int {
+#[test]
+fn sample_string7<'a>(){
+    let s = "function huga(foo Int) Int {
         return 1 + 1
      }
      return huga(1)
-    "
+    ";
+    let tokens = lexer::str_to_tokens(s);
+    println!("{:?}",s);
+    println!("{:?}",parser::parse(&tokens))
+}
+
+#[test]
+fn sample_string<'a>() {
+    let s = "
+        let hoge = 1
+        function huga(foo Int) Int {
+            return foo + 1
+        }
+        let aaa =  4 + huga(hoge,tawawa) + 7
+        print(aaa)
+    ";
+    let tokens = lexer::str_to_tokens(s);
+    println!("{:?}", s);
+    println!("{:?}", parser::parse(&tokens))
 }
 
 fn sample_string6<'a>() -> &'a str {
@@ -57,18 +78,6 @@ fn sample_string2<'a>() -> &'a str {
 
 }
 
-fn sample_string<'a>() -> &'a str {
 
-    "
-        let hoge = 1
 
-        function huga(foo Int) Int {
-            return foo + 1
-        }
-
-        let aaa =  4 + huga(hoge,tawawa) + 7
-        print(aaa)
-    "
-
-}
 

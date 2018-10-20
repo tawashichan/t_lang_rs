@@ -24,10 +24,9 @@ fn parse_stmts<'a>(tokens: &'a[Token],stmts: &mut Vec<Stmt>) -> (&'a[Token],Vec<
 }
 
 fn parse_stmt(tokens: &[Token]) -> (&[Token],Stmt) {
-    //println!("{:?}",tokens);
     match tokens {
         [Token::LET,Token::VAR(s),Token::EQUAL,rest..] => {
-            let (res,exp) = parse_expr(rest,None);
+            let (res,exp) = parse_expr(rest);
             (res,Stmt::Assign(Var::Var(s.clone()),exp))
         },
         [Token::FUNCTION,Token::VAR(s),Token::LPAR,rest..] => {
@@ -41,7 +40,7 @@ fn parse_stmt(tokens: &[Token]) -> (&[Token],Stmt) {
             (res,Stmt::CallProc(s.clone(),args))
         },
         [Token::RETURN,rest..] => {
-            let (res,exp) = parse_expr(rest,None);
+            let (res,exp) = parse_expr(rest);
             (res,Stmt::CallProc(format!("return"),vec![exp]))
         },
         [first,rest..] => panic!("invalid token {:?}",first),
@@ -69,7 +68,7 @@ fn parse_func_call_args(tokens: &[Token]) -> (&[Token],Vec<Exp>) {
 }
 
 fn parse_func_call_arg<'a>(tokens: &'a [Token], args: &mut Vec<Exp>) -> (&'a [Token], Vec<Exp>) {
-    let (rest, exp) = parse_expr(tokens, None);
+    let (rest, exp) = parse_expr(tokens);
     args.push(exp);
     match rest {
         [Token::COMMA, res..] => parse_func_call_arg(res, args),
@@ -91,29 +90,41 @@ fn get_type(tokens: &[Token]) -> (&[Token],Typ){
     }
 }
 
-fn parse_expr(tokens: &[Token],exp: Option<Exp>) -> (&[Token],Exp) {
-    match tokens {
-        [Token::LPAR,rest..] => parse_expr(rest,exp),
-        [Token::RPAR,rest..] => {
-            (rest,exp.unwrap())
+fn parse_expr(tokens: &[Token]) -> (&[Token],Exp) {
+    let (rest,exp) = parse_expr_sub(tokens);
+    match rest {
+        [Token::PLUS,res..] => {
+            let (re,ex) = parse_expr(res);
+            (re,Exp::CallFunc(format!("+"),vec![exp,ex]))
         },
-        [Token::INT(i),rest..] => parse_expr(rest,Some(Exp::IntExp(*i))),
-        [Token::PLUS,rest..] => {
-            let (res,e) = parse_expr(rest,None);
-            parse_expr(res,Some(Exp::CallFunc(format!("+"),vec![exp.unwrap(),e])))
+        [Token::MINUS,res..] => {
+            let (re,ex) = parse_expr(res);
+            (re,Exp::CallFunc(format!("-"),vec![exp,ex]))
         },
-        [Token::MINUS,rest..] => {
-            let (res,e) = parse_expr(rest,None);
-            parse_expr(res,Some(Exp::CallFunc(format!("-"),vec![exp.unwrap(),e])))
-        },
-        [Token::VAR(s),Token::LPAR,rest..] => {
-            let (res,args) = parse_func_call_args(rest);
-            parse_expr(res,Some(Exp::CallFunc(s.clone(),args)))
-        },
-        [Token::VAR(s),rest..] => parse_expr(rest,Some(Exp::VarExp(box Var::Var(s.clone())))),
-        _ => {
-            (tokens,exp.unwrap())
-        }
+        [Token::RPAR,rest..] => (rest,exp),
+        _ => (rest,exp)
     }
 }
 
+fn parse_expr_sub(tokens: &[Token]) -> (&[Token],Exp) {
+    match tokens {
+        [Token::LPAR,rest..] => {
+            let (res,exp) = parse_expr(rest);
+            match res {
+                [Token::RPAR,re..] => (re,exp),
+                _ => panic!()
+            }
+        },
+        [Token::INT(i),rest..] => {
+            (rest,Exp::IntExp(*i))
+        },
+        [Token::VAR(s),Token::LPAR,rest..] => {
+            let (res,args) = parse_func_call_args(rest);
+            (res,(Exp::CallFunc(s.clone(),args)))
+        },
+        [Token::VAR(s),rest..] => (rest,(Exp::VarExp(box Var::Var(s.clone())))),
+        _ => {
+            panic!()
+        }
+    }
+}
