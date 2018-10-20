@@ -106,6 +106,7 @@ fn parse_expr(tokens: &[Token]) -> (&[Token],Exp) {
     }
 }
 
+// ()の対応つらすぎ
 fn parse_expr_sub(tokens: &[Token]) -> (&[Token],Exp) {
     match tokens {
         [Token::LPAR,rest..] => {
