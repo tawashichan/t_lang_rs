@@ -11,6 +11,8 @@ pub fn parse(tokens: &[Token]) -> Prog {
 
 fn parse_stmts<'a>(tokens: &'a[Token],stmts: &mut Vec<Stmt>) -> (&'a[Token],Vec<Stmt>) {
     match tokens {
+        [Token::LBRACE,rest..] => parse_stmts(rest,&mut vec![]), // ここあまりきれいじゃない...
+        [Token::RBRACE,rest..] => (rest,stmts.to_vec()),
         [first,rest..] => {
             let (res,stmt) = parse_stmt(tokens);
             stmts.push(stmt);
@@ -29,8 +31,13 @@ fn parse_stmt(tokens: &[Token]) -> (&[Token],Stmt) {
         },
         [Token::FUNCTION,Token::STRING(s),Token::LPAR,rest..] => {
             let (res,args) = parse_func_def_args(rest);
-            let (re,typ,stmts) = parse_func_type_body(res);
+            let (re,typ) = get_type(res);
+            let (r,stmts) = parse_stmts(re,&mut vec![]);
             (re,Stmt::FuncDec(s.clone(),args,typ,stmts))
+        },
+        [Token::RETURN,rest..] => {
+            let (res,exp) = parse_expr(rest,None);
+            (res,Stmt::CallProc(format!("return"),vec![exp]))
         },
         [first,rest..] => panic!("invalid token {:?}",first),
         &[] => panic!()
@@ -60,14 +67,10 @@ fn parse_type_str(s: String) -> Typ {
     }
 }
 
-fn parse_func_type_body(tokens: &[Token]) -> (&[Token],Typ,Vec<Stmt>){
+fn get_type(tokens: &[Token]) -> (&[Token],Typ){
     match tokens {
-        [Token::STRING(t),Token::LBRACE,rest..] => {
-            let typ = parse_type_str(t.clone());
-            let (res,stmts) = parse_stmts(rest,&mut vec![]);
-            (res,typ,stmts.to_vec())
-        }
-        _ => panic!("func body")
+        [Token::STRING(s),rest..] => (rest,parse_type_str(s.clone())),
+        _ => panic!()
     }
 }
 

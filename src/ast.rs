@@ -41,6 +41,7 @@ pub enum Var {
 #[derive(Debug,Clone)]
 pub enum Stmt {
     Assign(Var,Exp),
+    CallProc(String,Vec<Exp>),
     If(Exp,Box<Stmt>,Option<Box<Stmt>>),
     //Block(Vec<Dec>,Vec<Stmt>),
     FuncDec(String,Vec<(String,Typ)>,Typ,Vec<Stmt>),

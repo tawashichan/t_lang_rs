@@ -9,7 +9,7 @@ mod parser;
 mod eval;
 
 fn main() {
-    let tokens = lexer::str_to_tokens(sample_string6());
+    let tokens = lexer::str_to_tokens(sample_string7());
     println!("{:?}",tokens);
     let prog = parser::parse(&tokens);
     println!("{:?}",prog);
@@ -17,6 +17,7 @@ fn main() {
 
 fn sample_string7<'a>() -> &'a str {
     "function huga(foo Int) Int {
+        return 1 + 1
      }
     "
 }
