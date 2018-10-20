@@ -11,6 +11,8 @@ mod eval;
 use ast::*;
 use ast::Stmt::*;
 use ast::Exp::*;
+use ast::Typ::*;
+use ast::Var::*;
 
 fn main() {
     let s = "let a = (((7)) + 4)";
@@ -36,7 +38,7 @@ fn sample_string8<'a>() {
     let tokens = lexer::str_to_tokens(s);
     let ast = parser::parse(&tokens);
     let target_ast = Prog {
-        stmts: vec![Assign(Var::Var(format!("a")), CallFunc(format!("+"), vec![IntExp(7), CallFunc(format!("+"), vec![CallFunc(format!("aa"), vec![IntExp(1), IntExp(2), IntExp(3)]), IntExp(6)])]))]
+        stmts: vec![Assign(Var(format!("a")), CallFunc(format!("+"), vec![IntExp(7), CallFunc(format!("+"), vec![CallFunc(format!("aa"), vec![IntExp(1), IntExp(2), IntExp(3)]), IntExp(6)])]))]
     };
     assert_eq!(target_ast,ast)
 }
@@ -50,7 +52,10 @@ fn sample_string7<'a>(){
     ";
     let tokens = lexer::str_to_tokens(s);
     let ast = parser::parse(&tokens);
-    println!("{:?}",parser::parse(&tokens))
+    let target_ast = Prog {
+        stmts: vec![FuncDec(format!("huga"), vec![(format!("foo"), IntTyp)], IntTyp, vec![CallProc(format!("return"), vec![CallFunc(format!("+"), vec![IntExp(1), IntExp(1)])])]), CallProc(format!("return"), vec![CallFunc(format!("huga"), vec![IntExp(1)])])]
+    };
+    assert_eq!(target_ast,ast)
 }
 
 #[test]
@@ -65,7 +70,10 @@ fn sample_string<'a>() {
     ";
     let tokens = lexer::str_to_tokens(s);
     let ast = parser::parse(&tokens);
-    println!("{:?}", parser::parse(&tokens))
+    let target_ast = Prog {
+        stmts: vec![Assign(Var(format!("hoge")), IntExp(1)), FuncDec(format!("huga"), vec![(format!("foo"), IntTyp)], IntTyp, vec![CallProc(format!("return"), vec![CallFunc(format!("+"), vec![VarExp(box Var(format!("foo"))), IntExp(1)])])]), Assign(Var(format!("aaa")), CallFunc(format!("+"), vec![IntExp(4), CallFunc(format!("+"), vec![CallFunc(format!("huga"), vec![VarExp(box Var(format!("hoge"))), VarExp(box Var(format!("tawawa")))]), IntExp(7)])])), CallProc(format!("print"), vec![VarExp(box Var(format!("aaa")))])]
+    };
+    assert_eq!(target_ast,ast)
 }
 
 fn sample_string6<'a>() -> &'a str {
