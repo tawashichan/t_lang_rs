@@ -35,6 +35,10 @@ fn parse_stmt(tokens: &[Token]) -> (&[Token],Stmt) {
             let (r,stmts) = parse_stmts(re,&mut vec![]);
             (r,Stmt::FuncDec(s.clone(),args,typ,stmts))
         },
+        [Token::VAR(s),Token::LPAR,rest..] => {
+            let (res,args) = parse_func_call_args(rest);
+            (res,Stmt::CallProc(s.clone(),args))
+        },
         [Token::RETURN,rest..] => {
             let (res,exp) = parse_expr(rest,None);
             (res,Stmt::CallProc(format!("return"),vec![exp]))
@@ -58,7 +62,6 @@ fn parse_func_def_arg<'a>(tokens: &'a[Token],args: &mut Vec<(String,Typ)>) -> (&
         _ => (&[],args.to_vec())
     }
 }
-
 
 fn parse_func_call_args(tokens: &[Token]) -> (&[Token],Vec<Exp>) {
     parse_func_call_arg(tokens,&mut vec![])
@@ -88,7 +91,6 @@ fn get_type(tokens: &[Token]) -> (&[Token],Typ){
 }
 
 fn parse_expr(tokens: &[Token],exp: Option<Exp>) -> (&[Token],Exp) {
-    println!("{:?}",tokens);
     match tokens {
         [Token::LPAR,rest..] => parse_expr(rest,exp),
         [Token::RPAR,rest..] => {

@@ -64,7 +64,9 @@ fn sample_string<'a>() -> &'a str {
             return foo + 1
         }
 
-        let aaa = huga(hoge,tawawa)"
+        let aaa = huga(hoge,tawawa)
+        print(aaa)
+    "
 
 }
 
