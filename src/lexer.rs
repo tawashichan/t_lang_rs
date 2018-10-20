@@ -22,6 +22,7 @@ pub enum Token {
     IF,
     ELSE,
     FUNCTION,
+    VAR(String),
     BOOLEAN(bool),
     RETURN,
     EOF
@@ -45,6 +46,21 @@ fn get_str_sub(str_vec: &[char],acm: String) -> (String,&[char]) {
     }
 }
 
+fn get_string(str_vec: &[char]) -> (Token,&[char]) {
+    match str_vec {
+        ['\"',rest..] => get_string_sub(rest,"".to_string()),
+        _ => panic!()
+    }
+}
+
+fn get_string_sub(str_vec: &[char],acm: String) -> (Token,&[char]) {
+    match str_vec {
+        ['\"',rest..] => (Token::VAR(acm),rest),
+        [first,rest..] => get_string_sub(rest,format!("{}{}", acm, first)),
+        _ => panic!()
+    }
+}
+
 fn get_keyword(str_vec: &[char]) -> (Token, &[char]){
     get_keyword_sub(str_vec,"".to_string())
 }
@@ -61,7 +77,7 @@ fn get_keyword_sub(str_vec: &[char], acm: String) -> (Token, &[char]) {
                 "else" => (Token::ELSE, str_vec),
                 "function" => (Token::FUNCTION, str_vec),
                 "return" => (Token::RETURN,str_vec),
-                s =>  (Token::STRING(s.to_string()),str_vec)
+                s =>  (Token::VAR(s.to_string()),str_vec)
             }
         }
         &[] => panic!("invalid tokens")//(acm,&[]),
@@ -119,6 +135,8 @@ fn next_token(slice: &[char]) -> (Token, &[char]) {
                         let num = num_str.parse::<i64>().unwrap();
                         (Token::INT(num), re)
                     }
+                } else if *c == '\"'{
+                    get_string(slice)
                 } else {
                     get_keyword(slice)
                 }
