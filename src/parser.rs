@@ -110,10 +110,10 @@ fn parse_expr_sub(tokens: &[Token]) -> (&[Token],Exp) {
     match tokens {
         [Token::LPAR,rest..] => {
             let (res,exp) = parse_expr_sub(rest);
-            println!("{:?}",res);
+            //println!("{:?}",res);
             match res {
                 [Token::RPAR,re..] => (re,exp),
-                _ => panic!()
+                _ => (res,exp)
             }
         },
         [Token::INT(i),rest..] => {

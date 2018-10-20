@@ -9,7 +9,7 @@ mod parser;
 mod eval;
 
 fn main() {
-    let s = "let a = (((7)))";
+    let s = "let a = (((7)) + 4)";
     let tokens = lexer::str_to_tokens(s);
     println!("{:?}",s);
     println!("{:?}",parser::parse(&tokens))
