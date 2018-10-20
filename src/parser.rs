@@ -101,7 +101,7 @@ fn parse_expr(tokens: &[Token]) -> (&[Token],Exp) {
             let (re,ex) = parse_expr(res);
             (re,Exp::CallFunc(format!("-"),vec![exp,ex]))
         },
-        [Token::RPAR,rest..] => (rest,exp),
+        [Token::RPAR,res..] => (res,exp),
         _ => (rest,exp)
     }
 }
@@ -109,7 +109,8 @@ fn parse_expr(tokens: &[Token]) -> (&[Token],Exp) {
 fn parse_expr_sub(tokens: &[Token]) -> (&[Token],Exp) {
     match tokens {
         [Token::LPAR,rest..] => {
-            let (res,exp) = parse_expr(rest);
+            let (res,exp) = parse_expr_sub(rest);
+            println!("{:?}",res);
             match res {
                 [Token::RPAR,re..] => (re,exp),
                 _ => panic!()

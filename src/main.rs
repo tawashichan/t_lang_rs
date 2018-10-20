@@ -9,7 +9,15 @@ mod parser;
 mod eval;
 
 fn main() {
-    let s = "let a = 7 + aa(a,b,c) + 6 print(nn)";
+    let s = "let a = (((7)))";
+    let tokens = lexer::str_to_tokens(s);
+    println!("{:?}",s);
+    println!("{:?}",parser::parse(&tokens))
+}
+
+#[test]
+fn sample_string9<'a>() {
+    let s = "let a = (7)";
     let tokens = lexer::str_to_tokens(s);
     println!("{:?}",s);
     println!("{:?}",parser::parse(&tokens))
