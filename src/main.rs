@@ -9,10 +9,12 @@ mod parser;
 mod eval;
 
 fn main() {
-    let tokens = lexer::str_to_tokens(sample_string());
+    let tokens = lexer::str_to_tokens(sample_string5());
     println!("{:?}",tokens);
     let prog = parser::parse(&tokens);
     println!("{:?}",prog);
+    let env = eval::eval_prog(prog);
+    println!("{:?}",env);
 }
 
 fn sample_string8<'a>() -> &'a str {
@@ -32,7 +34,7 @@ fn sample_string6<'a>() -> &'a str {
 }
 
 fn sample_string5<'a>() -> &'a str {
-    "1 + 1"
+    "return 1 + 1"
 }
 
 fn sample_string4<'a>() -> &'a str {
@@ -70,12 +72,3 @@ fn sample_string<'a>() -> &'a str {
 
 }
 
-/*fn sample_ast(){
-    let n = Node::Statement(Statement::Def(Def::VarDef{name: "hoge".to_string(),value: Expr::Int(1)}));
-    let n2 = Node::Statement(Statement::Def(Def::FuncDef{name: "huga".to_string(),args: vec![("foo".to_string(),"Int".to_string())],content: vec![Node::Expr(Expr::TwoTermOp(format!("PLUS"),box Expr::Var("foo".to_string()),box Expr::Int(1)))],return_type: Type::Int}));
-    let n3 = Node::Statement(Statement::Def(Def::VarDef{name: "aaa".to_string(),value: Expr::FuncApply(format!("huga"),vec![Expr::Var(format!("hoge"))])}));
-
-    let p = Program{nodes: vec![n,n2,n3]};
-
-    println!("{:?}",p);
-}*/
