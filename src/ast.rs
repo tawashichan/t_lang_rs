@@ -18,67 +18,56 @@
 ///
 ///
 /// 上の構文は
-/// Node::Statement(Statement::Def(Def::VarDef{name: "hoge".to_string(),var_type: Type::Int,value: Val::Int(1)}))
-/// Node::Statement(Statement::Def(Def::FuncDef{name: "huga".to_string(),args: vec![("foo".to_string(),Type::Int)],content: vec![Node::Expr(Expr::TwoTermOp(box TwoTermOp::Plus(Expr::Val(Val::Var("foo".to_string())),Expr::Val(Val::Int(1)))))],return_type: Type::Int}));
-/// Node::Statement(Statement::Def(Def::VarDef{name: "aaa".to_string(),var_type: Type::Int,value: Expr::FuncApply(format!("huga"),vec![Expr::Var(format!("hoge"))])}));
+///  Node::Statement(Statement::Def(Def::VarDef{name: "hoge".to_string(),value: Expr::Int(1)}));
+///  Node::Statement(Statement::Def(Def::FuncDef{name: "huga".to_string(),args: vec![("foo".to_string(),Type::Int)],content: vec![Node::Expr(Expr::TwoTermOp(format!("PLUS"),box Expr::Var("foo".to_string()),box Expr::Int(1)))],return_type: Type::Int}));
+///  Node::Statement(Statement::Def(Def::VarDef{name: "aaa".to_string(),var_type: Type::Int,value: Expr::FuncApply(format!("huga"),vec![Expr::Var(format!("hoge"))])}));
 /// となる予定。とりあえずこれをコンパイルするのを目標にする。改装深すぎるのでtraitでいい感じにできればなぁ
 ///
 ///
+///
+///
 
 #[derive(Debug)]
-pub struct  Program {
-    pub nodes: Vec<Node>
+pub struct Prog{
+    pub stmts: Vec<Stmt>
 }
 
-#[derive(Debug)]
-pub enum Node {
-    Statement(Statement),
-    Expr(Expr)
-}
-
-#[derive(Debug)]
-pub enum Statement {
-    Def(Def)
-}
-
-#[derive(Debug)]
-pub enum Def{
-    FuncDef{name: String,args: Vec<(String,Type)>,content: Vec<Node>,return_type: Type},
-    VarDef{name: String,value: Expr} //変数は必ず初期化されなければならない
-}
-
-#[derive(Debug)]
-pub enum TwoTermOp{
-    Plus(Expr,Expr),
-    Minus(Expr,Expr),
-    Mul(Expr,Expr),
-    Div(Expr,Expr),
-    Equal(Expr,Expr)
-}
-
-#[derive(Debug)]
-pub enum Val {
-    Int(i64),
-    String(String),
-    Tuple(Vec<Type>), //この二つはどっかで対応する
-    Struct(String,Vec<(String,Val)>)
-}
-
-#[derive(Debug)]
-pub enum Type {
-    Int,
-    String,
-    Array(Vec<Type>),
-    Tuple(Vec<Type>),
-    Struct(String,Vec<(String,Type)>),
-    Void
-}
-
-#[derive(Debug)]
-pub enum Expr {
-    IF{cond: Box<Expr>,then: Box<Expr>,other: Box<Expr>},
+#[derive(Debug,Clone)]
+pub enum Var {
     Var(String),
-    Val(Val),
-    TwoTermOp(Box<TwoTermOp>),
-    FuncApply(String,Vec<(Expr)>)
+    IndexedVar(Box<Var>,Exp)
 }
+//一旦宣言を
+#[derive(Debug,Clone)]
+pub enum Stmt {
+    Assign(Var,Exp),
+    If(Exp,Box<Stmt>,Option<Box<Stmt>>),
+    //Block(Vec<Dec>,Vec<Stmt>),
+    FuncDec(String,Vec<(String,Typ)>,Typ,Vec<Stmt>),
+    VarDec(Typ,String),
+    NilStmt
+}
+
+#[derive(Debug,Clone)]
+pub enum Exp {
+    VarExp(Box<Var>),
+    StrExp(String),
+    IntExp(i64),
+    CallFunc(String,Vec<Exp>)
+}
+
+#[derive(Debug,Clone)]
+pub enum Dec{
+    FuncDec(String,Vec<(Typ,String)>,Typ,Stmt),
+    VarDec(Typ,String)
+}
+
+#[derive(Debug,Clone)]
+pub enum Typ {
+    NameTyp(String),
+    ArrayTyp(i64,Box<Typ>),
+    IntTyp,
+    VoidTyp,
+}
+
+
