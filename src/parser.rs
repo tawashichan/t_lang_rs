@@ -64,17 +64,12 @@ fn parse_func_call_args(tokens: &[Token]) -> (&[Token],Vec<Exp>) {
     parse_func_call_arg(tokens,&mut vec![])
 }
 
-fn parse_func_call_arg<'a>(tokens: &'a[Token],args: &mut Vec<Exp>) -> (&'a[Token],Vec<Exp>) {
-    match tokens {
-        [Token::RPAR,rest..] => (rest,args.to_vec()),
-        _ => {
-            let (rest,exp) = parse_expr(tokens,None);
-            args.push(exp);
-            match rest {
-                [Token::COMMA,res] => parse_func_call_arg(rest,args),
-                _ => (rest,args.to_vec())
-            }
-        }
+fn parse_func_call_arg<'a>(tokens: &'a [Token], args: &mut Vec<Exp>) -> (&'a [Token], Vec<Exp>) {
+    let (rest, exp) = parse_expr(tokens, None);
+    args.push(exp);
+    match rest {
+        [Token::COMMA, res..] => parse_func_call_arg(res, args),
+        _ => (rest, args.to_vec())
     }
 }
 
@@ -93,6 +88,7 @@ fn get_type(tokens: &[Token]) -> (&[Token],Typ){
 }
 
 fn parse_expr(tokens: &[Token],exp: Option<Exp>) -> (&[Token],Exp) {
+    println!("{:?}",tokens);
     match tokens {
         [Token::LPAR,rest..] => parse_expr(rest,exp),
         [Token::RPAR,rest..] => {

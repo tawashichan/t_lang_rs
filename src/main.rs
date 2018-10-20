@@ -15,6 +15,10 @@ fn main() {
     println!("{:?}",prog);
 }
 
+fn sample_string8<'a>() -> &'a str {
+    "let a = aa(1,2,3)"
+}
+
 fn sample_string7<'a>() -> &'a str {
     "function huga(foo Int) Int {
         return 1 + 1
@@ -60,7 +64,7 @@ fn sample_string<'a>() -> &'a str {
             return foo + 1
         }
 
-        let aaa = huga(hoge)"
+        let aaa = huga(hoge,tawawa)"
 
 }
 
