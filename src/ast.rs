@@ -27,18 +27,18 @@
 ///
 ///
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub struct Prog{
     pub stmts: Vec<Stmt>
 }
 
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,PartialEq)]
 pub enum Var {
     Var(String),
     IndexedVar(Box<Var>,Exp)
 }
 //一旦宣言を
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,PartialEq)]
 pub enum Stmt {
     Assign(Var,Exp),
     CallProc(String,Vec<Exp>),
@@ -49,7 +49,7 @@ pub enum Stmt {
     NilStmt
 }
 
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,PartialEq)]
 pub enum Exp {
     VarExp(Box<Var>),
     StrExp(String),
@@ -57,13 +57,13 @@ pub enum Exp {
     CallFunc(String,Vec<Exp>)
 }
 
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,PartialEq)]
 pub enum Dec{
     FuncDec(String,Vec<(Typ,String)>,Typ,Stmt),
     VarDec(Typ,String)
 }
 
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,PartialEq)]
 pub enum Typ {
     NameTyp(String),
     ArrayTyp(i64,Box<Typ>),
