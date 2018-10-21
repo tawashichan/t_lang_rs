@@ -54,6 +54,7 @@ fn parse_func_def_args(tokens: &[Token]) -> (&[Token],Vec<(String,Typ)>) {
 
 fn parse_func_def_arg<'a>(tokens: &'a[Token],args: &mut Vec<(String,Typ)>) -> (&'a[Token],Vec<(String,Typ)>) {
     match tokens {
+        [Token::COMMA,rest..] => parse_func_def_arg(rest,args),
         [Token::RPAR,rest..] => (rest,args.to_vec()),
         [Token::VAR(s),Token::VAR(ts),rest..] => {
             args.push((s.clone(),parse_type_str(ts.clone())));
@@ -111,10 +112,11 @@ fn parse_expr_sub(tokens: &[Token]) -> (&[Token],Exp) {
     match tokens {
         [Token::LPAR,rest..] => {
             let (res,exp) = parse_expr_sub(rest);
-            //println!("{:?}",res);
+            println!("{:?}",res);
             match res {
                 [Token::RPAR,re..] => (re,exp),
-                _ => (res,exp)
+                [Token::PLUS,re..] => (res,exp),
+                _ => panic!()//(res,exp)
             }
         },
         [Token::INT(i),rest..] => {

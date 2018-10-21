@@ -15,10 +15,33 @@ use ast::Typ::*;
 use ast::Var::*;
 
 fn main() {
-    let s = "let a = (((7)) + 4)";
+    let s = "function hoge(aa Int,bb Int) Int { return 1 + 1 }";
     let tokens = lexer::str_to_tokens(s);
     println!("{:?}",s);
     println!("{:?}",parser::parse(&tokens))
+}
+
+
+#[test]
+fn sample_string11<'a>() {
+    let s = "function hoge(aa Int,bb Int) Int { return 1 + 1}";
+    let tokens = lexer::str_to_tokens(s);
+    let ast = parser::parse(&tokens);
+    let target_ast = ast::Prog{
+        stmts: vec![FuncDec(format!("hoge"), vec![(format!("aa"), IntTyp),(format!("bb"), IntTyp)], IntTyp, vec![CallProc(format!("return"), vec![CallFunc(format!("+"), vec![IntExp(1), IntExp(1)])])])]
+    };
+    assert_eq!(target_ast,ast)
+}
+
+#[test]
+fn sample_string10<'a>() {
+    let s = "let a = ((7) + 4)";
+    let tokens = lexer::str_to_tokens(s);
+    let ast = parser::parse(&tokens);
+    let target_ast = ast::Prog{
+        stmts: vec![ast::Stmt::Assign(ast::Var::Var(format!("a")),Exp::CallFunc(format!("+"),vec![ast::Exp::IntExp(7),ast::Exp::IntExp(4)]))]
+    };
+    assert_eq!(target_ast,ast)
 }
 
 #[test]
