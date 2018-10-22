@@ -46,6 +46,7 @@ pub enum Stmt {
     //Block(Vec<Dec>,Vec<Stmt>),
     FuncDec(String,Vec<(String,Typ)>,Typ,Vec<Stmt>),
     VarDec(Typ,String),
+    ExpStmt(Exp),
     NilStmt
 }
 

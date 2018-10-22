@@ -13,12 +13,13 @@ use ast::Stmt::*;
 use ast::Exp::*;
 use ast::Typ::*;
 use ast::Var::*;
+use lexer::Token;
 
 fn main() {
-    let s = "function hoge(aa Int,bb Int) Int { return 1 + 1 }";
-    let tokens = lexer::str_to_tokens(s);
-    println!("{:?}",s);
-    println!("{:?}",parser::parse(&tokens))
+    let tokens = vec![Token::LPAR,Token::LPAR,Token::INT(7),Token::RPAR,Token::PLUS,Token::INT(4),Token::RPAR];
+    println!("start {:?}",tokens);
+    let (ast) = parser::parse(&tokens);
+    println!("end {:?}",ast);
 }
 
 
@@ -46,7 +47,7 @@ fn sample_string10<'a>() {
 
 #[test]
 fn sample_string9<'a>() {
-    let s = "let a = (7)";
+    let s = "let a = ((7))";
     let tokens = lexer::str_to_tokens(s);
     let ast = parser::parse(&tokens);
     let target_ast = ast::Prog{
