@@ -14,13 +14,12 @@ fn parse_stmts<'a>(tokens: &'a[Token],stmts: &mut Vec<Stmt>) -> (&'a[Token],Vec<
     match tokens {
         [Token::LBRACE,rest..] => parse_stmts(rest,&mut vec![]), // ここあまりきれいじゃない...
         [Token::RBRACE,rest..] => (rest,stmts.to_vec()),
-        [first,rest..] => {
+        &[] => (&[],stmts.to_vec()),
+        _ => {
             let (res,stmt) = parse_stmt(tokens);
             stmts.push(stmt);
             parse_stmts(res,stmts)
         }
-        &[] => (&[],stmts.to_vec()),
-        _ => (tokens,stmts.to_vec())
     }
 }
 
@@ -76,11 +75,12 @@ fn parse_func_def_arg<'a>(tokens: &'a[Token],args: &mut Vec<(String,Typ)>) -> (&
     match tokens {
         [Token::COMMA,rest..] => parse_func_def_arg(rest,args),
         [Token::RPAR,rest..] => (tokens,args.to_vec()),
-        [Token::VAR(s),Token::VAR(ts),rest..] => {
-            args.push((s.clone(),parse_type_str(ts.clone())));
-            parse_func_def_arg(rest,args)
+        [Token::VAR(s),rest..] => {
+            let (res,typ) = get_type(rest);
+            args.push((s.clone(),typ));
+            parse_func_def_arg(res,args)
         }
-        _ => (tokens,args.to_vec())
+        _ => panic!("{:?}",tokens) //(tokens,args.to_vec())
     }
 }
 
@@ -106,12 +106,12 @@ fn parse_func_call_arg<'a>(tokens: &'a [Token], args: &mut Vec<Exp>) -> (&'a [To
     match rest {
         [Token::COMMA, res..] => parse_func_call_arg(res, args),
         [Token::RPAR,res..] => (rest,args.to_vec()),
-        _ => (rest, args.to_vec())
+        _ => panic!("{:?}",rest)//(rest, args.to_vec())
     }
 }
 
-fn parse_type_str(s: String) -> Typ {
-    match s.as_str() {
+fn parse_type_str(s: &str) -> Typ {
+    match s {
         "Int" => Typ::IntTyp,
         _ => Typ::IntTyp
     }
@@ -119,7 +119,7 @@ fn parse_type_str(s: String) -> Typ {
 
 fn get_type(tokens: &[Token]) -> (&[Token],Typ){
     match tokens {
-        [Token::VAR(s),rest..] => (rest,parse_type_str(s.clone())),
+        [Token::VAR(s),rest..] => (rest,parse_type_str(s)),
         _ => panic!()
     }
 }
