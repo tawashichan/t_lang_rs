@@ -17,11 +17,20 @@ use lexer::Token;
 
 fn main() {
     let tokens = vec![Token::LPAR,Token::LPAR,Token::INT(7),Token::RPAR,Token::PLUS,Token::INT(4),Token::RPAR];
-    println!("start {:?}",tokens);
     let (ast) = parser::parse(&tokens);
     println!("end {:?}",ast);
 }
 
+#[test]
+fn sample_string12<'a>() {
+    let s = "1 + 1";
+    let tokens = lexer::str_to_tokens(s);
+    let ast = parser::parse(&tokens);
+    let target_ast = ast::Prog{
+        stmts: vec![ExpStmt(CallFunc(format!("+"), vec![IntExp(1), IntExp(1)]))]
+    };
+    assert_eq!(target_ast,ast)
+}
 
 #[test]
 fn sample_string11<'a>() {

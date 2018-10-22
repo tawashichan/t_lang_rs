@@ -44,8 +44,6 @@ fn parse_stmt(tokens: &[Token]) -> (&[Token],Stmt) {
             let (rest,exp) = parse_exp(tokens,None);
             (rest,Stmt::ExpStmt(exp))
         }
-        /*[first,rest..] => panic!("invalid token {:?} rest{:?}",first,rest),
-        &[] => panic!()*/
     }
 }
 
