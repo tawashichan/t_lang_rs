@@ -97,7 +97,6 @@ fn parse_func_call_args(tokens: &[Token]) -> (&[Token],Vec<Exp>) {
         },
         _ => panic!("{:?}",tokens)
     }
-
 }
 
 fn parse_func_call_arg<'a>(tokens: &'a [Token], args: &mut Vec<Exp>) -> (&'a [Token], Vec<Exp>) {
@@ -168,7 +167,6 @@ pub fn parse_exp(tokens: &[Token],exp: Option<Exp>) -> (&[Token],Exp) {
             }
         }
     }
-
 }
 
 #[test]
@@ -205,7 +203,6 @@ fn parse_exp5(){
     let (rest,exp) = parse_exp(&tokens,None);
     assert_eq!(exp,Exp::CallFunc(format!("+"),vec![Exp::IntExp(7),Exp::IntExp(4)]))
 }
-
 
 #[test]
 fn parse_exp7() {

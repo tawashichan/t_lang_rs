@@ -22,6 +22,17 @@ fn main() {
 }
 
 #[test]
+fn sample_string13<'a>() {
+    let s = "let a = 7 + aa(((1) + (1)),((2)),(((3)))) + 6";
+    let tokens = lexer::str_to_tokens(s);
+    let ast = parser::parse(&tokens);
+    let target_ast = Prog {
+        stmts: vec![Assign(Var(format!("a")), CallFunc(format!("+"), vec![IntExp(7), CallFunc(format!("+"), vec![CallFunc(format!("aa"), vec![CallFunc(format!("+"),vec![IntExp(1),IntExp(1)]), IntExp(2), IntExp(3)]), IntExp(6)])]))]
+    };
+    assert_eq!(target_ast,ast)
+}
+
+#[test]
 fn sample_string12<'a>() {
     let s = "1 + 1";
     let tokens = lexer::str_to_tokens(s);
