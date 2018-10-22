@@ -7,6 +7,7 @@ mod ast;
 mod lexer;
 mod parser;
 mod eval;
+mod interactive;
 
 use ast::*;
 use ast::Stmt::*;
@@ -16,9 +17,10 @@ use ast::Var::*;
 use lexer::Token;
 
 fn main() {
-    let tokens = vec![Token::LPAR,Token::LPAR,Token::INT(7),Token::RPAR,Token::PLUS,Token::INT(4),Token::RPAR];
+    interactive::start_itl();
+    /*let tokens = vec![Token::LPAR,Token::LPAR,Token::INT(7),Token::RPAR,Token::PLUS,Token::INT(4),Token::RPAR];
     let (ast) = parser::parse(&tokens);
-    println!("end {:?}",ast);
+    println!("end {:?}",ast);*/
 }
 
 #[test]
