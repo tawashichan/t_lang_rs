@@ -75,7 +75,7 @@ fn get_keyword_sub(str_vec: &[char], acm: String) -> (Token, &[char]) {
                 "let" => (Token::LET, str_vec),
                 "if" => (Token::IF, str_vec),
                 "else" => (Token::ELSE, str_vec),
-                "function" => (Token::FUNCTION, str_vec),
+                "fun" => (Token::FUNCTION, str_vec),
                 "return" => (Token::RETURN,str_vec),
                 s =>  (Token::VAR(s.to_string()),str_vec)
             }

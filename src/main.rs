@@ -47,7 +47,7 @@ fn sample_string12<'a>() {
 
 #[test]
 fn sample_string11<'a>() {
-    let s = "function hoge(aa Int,bb Int) Int { return 1 + 1}";
+    let s = "fun hoge(aa Int,bb Int) Int { return 1 + 1}";
     let tokens = lexer::str_to_tokens(s);
     let ast = parser::parse(&tokens);
     let target_ast = ast::Prog{
@@ -91,7 +91,7 @@ fn sample_string8<'a>() {
 
 #[test]
 fn sample_string7<'a>(){
-    let s = "function huga(foo Int) Int {
+    let s = "fun huga(foo Int) Int {
         return 1 + 1
      }
      return huga(1)
@@ -108,7 +108,7 @@ fn sample_string7<'a>(){
 fn sample_string<'a>() {
     let s = "
         let hoge = 1
-        function huga(foo Int) Int {
+        fun huga(foo Int) Int {
             return foo + 1
         }
         let aaa =  4 + huga(hoge,tawawa) + 7
@@ -137,7 +137,7 @@ fn sample_string4<'a>() -> &'a str {
 }
 
 fn sample_string3<'a>() -> &'a str {
-    "function huga(foo Int) Int {
+    "fun huga(foo Int) Int {
             foo + 1
       }
     "
