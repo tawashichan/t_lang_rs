@@ -37,7 +37,7 @@ pub enum Var {
     Var(String),
     IndexedVar(Box<Var>,Exp)
 }
-//一旦宣言を
+
 #[derive(Debug,Clone,PartialEq)]
 pub enum Stmt {
     Assign(Var,Exp),

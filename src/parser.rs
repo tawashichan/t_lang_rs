@@ -124,48 +124,6 @@ fn get_type(tokens: &[Token]) -> (&[Token],Typ){
     }
 }
 
-fn parse_expr(tokens: &[Token]) -> (&[Token],Exp) {
-    let (rest,exp) = parse_expr_sub(tokens);
-    match rest {
-        [Token::PLUS,res..] => {
-            let (re,ex) = parse_expr(res);
-            (re,Exp::CallFunc(format!("+"),vec![exp,ex]))
-        },
-        [Token::MINUS,res..] => {
-            let (re,ex) = parse_expr(res);
-            (re,Exp::CallFunc(format!("-"),vec![exp,ex]))
-        },
-        [Token::RPAR,res..] => (res,exp),
-        _ => (rest,exp)
-    }
-}
-
-// ()の対応つらすぎ
-fn parse_expr_sub(tokens: &[Token]) -> (&[Token],Exp) {
-    match tokens {
-        [Token::LPAR,rest..] => {
-            let (res,exp) = parse_expr_sub(rest);
-            match res {
-                [Token::RPAR,re..] => (re,exp),
-                [Token::PLUS,re..] => (res,exp),
-                _ => panic!()//(res,exp)
-            }
-        },
-        [Token::INT(i),rest..] => {
-            (rest,Exp::IntExp(*i))
-        },
-        [Token::VAR(s),Token::LPAR,rest..] => {
-            let (res,args) = parse_func_call_args(rest);
-            (res,(Exp::CallFunc(s.clone(),args)))
-        },
-        [Token::VAR(s),rest..] => (rest,(Exp::VarExp(box Var::Var(s.clone())))),
-        _ => {
-            panic!()
-        }
-    }
-}
-
-
 pub fn parse_exp(tokens: &[Token],exp: Option<Exp>) -> (&[Token],Exp) {
     match exp {
         Some(exp) => {
@@ -173,6 +131,10 @@ pub fn parse_exp(tokens: &[Token],exp: Option<Exp>) -> (&[Token],Exp) {
                 [Token::PLUS,rest..] => {
                     let (res,ex) = parse_exp(rest,None);
                     (res,Exp::CallFunc(format!("+"),vec![exp,ex]))
+                },
+                [Token::MINUS,rest..] => {
+                    let (res,ex) = parse_exp(rest,None);
+                    (res,Exp::CallFunc(format!("-"),vec![exp,ex]))
                 },
                 _ => (tokens,exp)
             }
@@ -198,7 +160,8 @@ pub fn parse_exp(tokens: &[Token],exp: Option<Exp>) -> (&[Token],Exp) {
                     parse_exp(res,Some(Exp::CallFunc(s.clone(),args)))
 
                 },
-                [Token::VAR(s),rest..] => parse_exp(rest,Some(Exp::VarExp(box Var::Var(s.clone())))),
+                [Token::VAR(s),rest..] =>
+                    parse_exp(rest,Some(Exp::VarExp(box Var::Var(s.clone())))),
                 _ => {
                     panic!("{:?}",tokens)
                 }
@@ -261,3 +224,45 @@ fn parse_exp8(){
     assert_eq!(exp,Exp::CallFunc(format!("+"),vec![Exp::IntExp(7),Exp::IntExp(4)]))
 }
 
+
+
+/*fn parse_expr(tokens: &[Token]) -> (&[Token],Exp) {
+    let (rest,exp) = parse_expr_sub(tokens);
+    match rest {
+        [Token::PLUS,res..] => {
+            let (re,ex) = parse_expr(res);
+            (re,Exp::CallFunc(format!("+"),vec![exp,ex]))
+        },
+        [Token::MINUS,res..] => {
+            let (re,ex) = parse_expr(res);
+            (re,Exp::CallFunc(format!("-"),vec![exp,ex]))
+        },
+        [Token::RPAR,res..] => (res,exp),
+        _ => (rest,exp)
+    }
+}
+
+// ()の対応つらすぎ
+fn parse_expr_sub(tokens: &[Token]) -> (&[Token],Exp) {
+    match tokens {
+        [Token::LPAR,rest..] => {
+            let (res,exp) = parse_expr_sub(rest);
+            match res {
+                [Token::RPAR,re..] => (re,exp),
+                [Token::PLUS,re..] => (res,exp),
+                _ => panic!()//(res,exp)
+            }
+        },
+        [Token::INT(i),rest..] => {
+            (rest,Exp::IntExp(*i))
+        },
+        [Token::VAR(s),Token::LPAR,rest..] => {
+            let (res,args) = parse_func_call_args(rest);
+            (res,(Exp::CallFunc(s.clone(),args)))
+        },
+        [Token::VAR(s),rest..] => (rest,(Exp::VarExp(box Var::Var(s.clone())))),
+        _ => {
+            panic!()
+        }
+    }
+}*/
