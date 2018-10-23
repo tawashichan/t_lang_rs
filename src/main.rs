@@ -147,7 +147,6 @@ fn sample_string2<'a>() -> &'a str {
     "let hoge = 1
      let aaa = huga(hoge)
     "
-
 }
 
 
