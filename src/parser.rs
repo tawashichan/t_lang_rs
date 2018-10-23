@@ -228,7 +228,7 @@ fn parse_mul_div_expr(tokens: &[Token]) -> (&[Token], Exp) {
             }
         }
         _ => {
-            parse_exp(&[])
+            panic!("{:?}",tokens)
         }
     }
 }
@@ -330,4 +330,5 @@ fn parse_exp11(){
     let (rest,exp) = parse_exp(&tokens);
     assert_eq!(exp,Exp::CallFunc(format!("-"),vec![Exp::CallFunc(format!("/"),vec![Exp::IntExp(1),Exp::IntExp(1)]),Exp::IntExp(1)]))
 }
+
 
