@@ -42,7 +42,6 @@ pub enum Var {
 pub enum Stmt {
     Assign(Var,Exp),
     CallProc(String,Vec<Exp>),
-    If(Exp,Box<Stmt>,Option<Box<Stmt>>),
     //Block(Vec<Dec>,Vec<Stmt>),
     FuncDec(String,Vec<(String,Typ)>,Typ,Vec<Stmt>),
     VarDec(Typ,String),
@@ -55,7 +54,9 @@ pub enum Exp {
     VarExp(Box<Var>),
     StrExp(String),
     IntExp(i64),
-    CallFunc(String,Vec<Exp>)
+    BoolExp(bool),
+    CallFunc(String,Vec<Exp>),
+    If(Box<Exp>,Vec<Stmt>,Option<Vec<Stmt>>),
 }
 
 #[derive(Debug,Clone,PartialEq)]
@@ -68,6 +69,7 @@ pub enum Dec{
 pub enum Typ {
     NameTyp(String),
     ArrayTyp(i64,Box<Typ>),
+    StrTyp,
     IntTyp,
     VoidTyp,
 }

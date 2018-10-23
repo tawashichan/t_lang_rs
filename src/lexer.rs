@@ -25,7 +25,10 @@ pub enum Token {
     VAR(String),
     BOOLEAN(bool),
     RETURN,
-    EOF
+    NOT,
+    TRUE,
+    FALSE,
+    EOF,
 }
 
 pub fn split_string(s: &str) -> Vec<char> {
@@ -55,7 +58,7 @@ fn get_string(str_vec: &[char]) -> (Token,&[char]) {
 
 fn get_string_sub(str_vec: &[char],acm: String) -> (Token,&[char]) {
     match str_vec {
-        ['\"',rest..] => (Token::VAR(acm),rest),
+        ['\"',rest..] => (Token::STRING(acm),rest),
         [first,rest..] => get_string_sub(rest,format!("{}{}", acm, first)),
         _ => panic!()
     }
@@ -77,6 +80,7 @@ fn get_keyword_sub(str_vec: &[char], acm: String) -> (Token, &[char]) {
                 "else" => (Token::ELSE, str_vec),
                 "fun" => (Token::FUNCTION, str_vec),
                 "return" => (Token::RETURN,str_vec),
+                "==" => (Token::EQUAL,str_vec),
                 s =>  (Token::VAR(s.to_string()),str_vec)
             }
         }
@@ -125,6 +129,7 @@ fn next_token(slice: &[char]) -> (Token, &[char]) {
             '-' => (Token::MINUS, rest),
             '*' => (Token::MUL, rest),
             '/' => (Token::DIV, rest),
+            '!' => (Token::NOT,rest),
             c =>
                 if c.is_numeric() || *c == '-' {
                     let (num_str, re,is_float,_) = get_num_str(slice); //moveもmutableな参照もしてないからここでslice使える
