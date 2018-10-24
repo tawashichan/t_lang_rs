@@ -180,21 +180,14 @@ fn parse_exp(tokens: &[Token]) -> (&[Token],Exp) {
     match tokens {
         [Token::IF,rest..] => {
             let (res,cond) = parse_exp(rest);
-            match res {
-                [Token::LBRACE,re..] => {
-                    let (r,then) = parse_stmts(re,&mut vec![]);
-                    match r {
-                        [Token::ELSE,Token::LBRACE,rr..] => {
-                            let (rrr,els) = parse_stmts(rr,&mut vec![]);
-                            (rrr,Exp::If(box cond,then,Some(els)))
-                        }
-                        _ => {
-                            (r,Exp::If(box cond,then,None))
-                        }
-                    }
+            let (re,then) = parse_stmts(res,&mut vec![]);
+            match re {
+                [Token::ELSE,r..] => {
+                    let (rr,els) = parse_stmts(r,&mut vec![]);
+                    (rr,Exp::If(box cond,then,Some(els)))
                 }
                 _ => {
-                    panic!("{:?}",res)
+                    (re,Exp::If(box cond,then,None))
                 }
             }
         }
@@ -241,21 +234,14 @@ fn parse_mul_div_expr(tokens: &[Token]) -> (&[Token], Exp) {
     match tokens {
         [Token::IF,rest..] => {
             let (res,cond) = parse_exp(rest);
-            match res {
-                [Token::LBRACE,re..] => {
-                    let (r,then) = parse_stmts(re,&mut vec![]);
-                    match r {
-                        [Token::ELSE,Token::RBRACE,rr..] => {
-                            let (rrr,els) = parse_stmts(rr,&mut vec![]);
-                            (rrr,Exp::If(box cond,then,Some(els)))
-                        }
-                        _ => {
-                            (r,Exp::If(box cond,then,None))
-                        }
-                    }
+            let (re,then) = parse_stmts(res,&mut vec![]);
+            match re {
+                [Token::ELSE,r..] => {
+                    let (rr,els) = parse_stmts(r,&mut vec![]);
+                    (rr,Exp::If(box cond,then,Some(els)))
                 }
                 _ => {
-                    panic!("{:?}",res)
+                    (re,Exp::If(box cond,then,None))
                 }
             }
         }
@@ -423,6 +409,13 @@ fn parse_exp14(){
 
 #[test]
 fn parse_exp15(){
+    let tokens = vec![Token::IF,Token::TRUE,Token::LBRACE,Token::TRUE,Token::RBRACE,Token::ELSE,Token::LBRACE,Token::TRUE,Token::RBRACE];
+    let (rest,exp) = parse_exp(&tokens);
+    assert_eq!(exp,Exp::If(box Exp::BoolExp(true),vec![Stmt::ExpStmt(Exp::BoolExp(true))],Some(vec![Stmt::ExpStmt(Exp::BoolExp(true))])))
+}
+
+#[test]
+fn parse_exp16(){
     let tokens = vec![Token::IF,Token::TRUE,Token::LBRACE,Token::TRUE,Token::RBRACE,Token::ELSE,Token::LBRACE,Token::TRUE,Token::RBRACE];
     let (rest,exp) = parse_exp(&tokens);
     assert_eq!(exp,Exp::If(box Exp::BoolExp(true),vec![Stmt::ExpStmt(Exp::BoolExp(true))],Some(vec![Stmt::ExpStmt(Exp::BoolExp(true))])))
