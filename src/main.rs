@@ -8,6 +8,7 @@ mod lexer;
 mod parser;
 mod eval;
 mod interactive;
+mod proc_parser;
 
 use ast::*;
 use ast::Stmt::*;

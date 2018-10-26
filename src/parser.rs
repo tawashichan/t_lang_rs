@@ -38,6 +38,7 @@ fn parse_stmt(tokens: &[Token]) -> (&[Token],Stmt) {
             let (res,exp) = parse_exp(rest);
             (res,Stmt::CallProc(format!("return"),vec![exp]))
         }
+        [Token::STRUCT,rest..] => parse_struct(tokens),
         _ => {
             let (rest,exp) = parse_exp(tokens);
             (rest,Stmt::ExpStmt(exp))
@@ -45,11 +46,39 @@ fn parse_stmt(tokens: &[Token]) -> (&[Token],Stmt) {
     }
 }
 
+
+fn parse_struct(tokens: &[Token]) -> (&[Token],Stmt){
+    match tokens {
+        [Token::STRUCT,Token::VAR(s),Token::LBRACE,rest..] => {
+            let (res,contents) = parse_struct_contents(rest,&mut vec![]);
+            match res {
+                [Token::RBRACE,re..] => (re,Stmt::StructDec(s.clone(),contents)),
+                _ => panic!("{:?}",res)
+            }
+        },
+        _ => panic!("{:?}",tokens)
+    }
+}
+
+fn parse_struct_contents<'a>(tokens: &'a[Token],contents: &mut Vec<(String,Typ)>) -> (&'a[Token],Vec<(String,Typ)>){
+    match tokens {
+        [Token::VAR(s),Token::COLON,rest..] => {
+            let (res,typ) = parse_type(rest);
+            contents.push((s.clone(),typ));
+            parse_struct_contents(res,contents)
+        }
+        [Token::COMMA,rest..] => {
+            parse_struct_contents(rest,contents)
+        }
+        _ => (tokens,contents.to_vec())
+    }
+}
+
 fn parse_function(tokens: &[Token]) -> (&[Token],Stmt) {
     match tokens {
         [Token::FUNCTION,Token::VAR(s),rest..] => {
             let (res,args) = parse_func_def_args(rest);
-            let (re,typ) = get_type(res);
+            let (re,typ) = parse_type(res);
             let (r,stmts) = parse_stmts(re,&mut vec![]);
             (r,Stmt::FuncDec(s.clone(),args,typ,stmts))
         }
@@ -75,7 +104,7 @@ fn parse_func_def_arg<'a>(tokens: &'a[Token],args: &mut Vec<(String,Typ)>) -> (&
         [Token::COMMA,rest..] => parse_func_def_arg(rest,args),
         [Token::RPAR,rest..] => (tokens,args.to_vec()),
         [Token::VAR(s),rest..] => {
-            let (res,typ) = get_type(rest);
+            let (res,typ) = parse_type(rest);
             args.push((s.clone(),typ));
             parse_func_def_arg(res,args)
         }
@@ -115,7 +144,7 @@ fn parse_type_str(s: &str) -> Typ {
     }
 }
 
-fn get_type(tokens: &[Token]) -> (&[Token],Typ){
+fn parse_type(tokens: &[Token]) -> (&[Token],Typ){
     match tokens {
         [Token::VAR(s),rest..] => (rest,parse_type_str(s)),
         _ => panic!()
@@ -419,4 +448,11 @@ fn parse_exp16(){
     let tokens = vec![Token::IF,Token::TRUE,Token::LBRACE,Token::TRUE,Token::RBRACE,Token::ELSE,Token::LBRACE,Token::TRUE,Token::RBRACE];
     let (rest,exp) = parse_exp(&tokens);
     assert_eq!(exp,Exp::If(box Exp::BoolExp(true),vec![Stmt::ExpStmt(Exp::BoolExp(true))],Some(vec![Stmt::ExpStmt(Exp::BoolExp(true))])))
+}
+
+#[test]
+fn parse_exp17(){
+    let tokens = vec![Token::STRUCT,Token::VAR(format!("Hoge")),Token::LBRACE,Token::VAR(format!("hoge")),Token::COLON,Token::VAR(format!("Int")),Token::RBRACE];
+    let (rest,stmt) = parse_stmt(&tokens);
+    assert_eq!(stmt,Stmt::StructDec(format!("Hoge"),vec![(format!("hoge"),Typ::IntTyp)]))
 }
