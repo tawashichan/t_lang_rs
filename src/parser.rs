@@ -249,7 +249,7 @@ fn parse_mul_div_expr(tokens: &[Token]) -> (&[Token], Exp) {
             let (res, exp) = parse_exp(rest);
             match res {
                 [Token::RPAR, re..] => {
-                    (res, exp)
+                    (re, exp)
                 }
                 _ => {
                     panic!("{:?}", res)
