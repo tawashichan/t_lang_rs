@@ -20,6 +20,8 @@
 ///
 ///
 
+use std::collections::HashMap;
+
 #[derive(Debug,PartialEq)]
 pub struct Prog{
     pub stmts: Vec<Stmt>
@@ -38,7 +40,7 @@ pub enum Stmt {
     //Block(Vec<Dec>,Vec<Stmt>),
     FuncDec(String,Vec<(String,Typ)>,Typ,Vec<Stmt>),
     VarDec(Typ,String),
-    StructDec(String,Vec<(String,Typ)>),
+    StructDec(String,HashMap<String,Typ>),
     ExpStmt(Exp), // 式文
     NilStmt
 }
@@ -53,11 +55,11 @@ pub enum Exp {
     If(Box<Exp>,Vec<Stmt>,Option<Vec<Stmt>>),
 }
 
-#[derive(Debug,Clone,PartialEq)]
+/*#[derive(Debug,Clone,PartialEq)]
 pub enum Dec{
     FuncDec(String,Vec<(Typ,String)>,Typ,Stmt),
     VarDec(Typ,String)
-}
+}*/
 
 #[derive(Debug,Clone,PartialEq)]
 pub enum Typ {

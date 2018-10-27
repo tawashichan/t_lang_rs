@@ -1,5 +1,7 @@
-use ast::{Prog,Exp,Stmt,Var,Dec,Typ};
+use std::collections::HashMap;
+use ast::{Prog,Exp,Stmt,Var,Typ};
 use lexer::{Token};
+
 
 
 //現在読み取り中の位置を保持するmutableな構造体使った方が確実に実装は楽
@@ -50,9 +52,10 @@ fn parse_stmt(tokens: &[Token]) -> (&[Token],Stmt) {
 fn parse_struct(tokens: &[Token]) -> (&[Token],Stmt){
     match tokens {
         [Token::STRUCT,Token::VAR(s),Token::LBRACE,rest..] => {
-            let (res,contents) = parse_struct_contents(rest,&mut vec![]);
+            let mut map = HashMap::new();
+            let (res,contents) = parse_struct_contents(rest,&mut map);
             match res {
-                [Token::RBRACE,re..] => (re,Stmt::StructDec(s.clone(),contents)),
+                [Token::RBRACE,re..] => (re,Stmt::StructDec(s.clone(),contents.to_owned())),
                 _ => panic!("{:?}",res)
             }
         },
@@ -60,17 +63,17 @@ fn parse_struct(tokens: &[Token]) -> (&[Token],Stmt){
     }
 }
 
-fn parse_struct_contents<'a>(tokens: &'a[Token],contents: &mut Vec<(String,Typ)>) -> (&'a[Token],Vec<(String,Typ)>){
+fn parse_struct_contents<'a,'b>(tokens: &'a[Token],contents: &'b mut HashMap<String,Typ>) -> (&'a[Token],&'b mut HashMap<String,Typ>){
     match tokens {
         [Token::VAR(s),Token::COLON,rest..] => {
             let (res,typ) = parse_type(rest);
-            contents.push((s.clone(),typ));
+            contents.insert(s.clone(),typ);
             parse_struct_contents(res,contents)
         }
         [Token::COMMA,rest..] => {
             parse_struct_contents(rest,contents)
         }
-        _ => (tokens,contents.to_vec())
+        _ => (tokens,contents)
     }
 }
 
@@ -150,60 +153,6 @@ fn parse_type(tokens: &[Token]) -> (&[Token],Typ){
         _ => panic!()
     }
 }
-
-/*pub fn parse_exp(tokens: &[Token],exp: Option<Exp>) -> (&[Token],Exp) {
-    match exp {
-        Some(exp) => {
-            match tokens {
-                [Token::PLUS,rest..] => {
-                    let (res,ex) = parse_exp(rest,None);
-                    (res,Exp::CallFunc(format!("+"),vec![exp,ex]))
-                },
-                [Token::MINUS,rest..] => {
-                    let (res,ex) = parse_exp(rest,None);
-                    (res,Exp::CallFunc(format!("-"),vec![exp,ex]))
-                },
-                [Token::MUL,rest..] => {
-                    let (res,ex) = parse_exp(rest,None);
-                    (res,Exp::CallFunc(format!("*"),vec![exp,ex]))
-                },
-                [Token::DIV,rest..] => {
-                    let (res,ex) = parse_exp(rest,None);
-                    (res,Exp::CallFunc(format!("/"),vec![exp,ex]))
-                },
-                _ => (tokens,exp)
-            }
-        },
-        None => {
-            match tokens {
-                [Token::LPAR,rest..] => {
-                    let (res,exp) = parse_exp(rest,None);
-                    match res {
-                        [Token::RPAR,re..] => {
-                            parse_exp(re,Some(exp))
-                        },
-                        _ => {
-                            panic!("{:?}",res)
-                        }
-                    }
-                },
-                [Token::INT(i),rest..] => {
-                    parse_exp(rest,Some(Exp::IntExp(*i)))
-                },
-                [Token::VAR(s),Token::LPAR,rest..] => {
-                    let (res,args) = parse_func_call_args(tokens);
-                    parse_exp(res,Some(Exp::CallFunc(s.clone(),args)))
-
-                },
-                [Token::VAR(s),rest..] =>
-                    parse_exp(rest,Some(Exp::VarExp(box Var::Var(s.clone())))),
-                _ => {
-                    panic!("{:?}",tokens)
-                }
-            }
-        }
-    }
-}*/
 
 fn parse_exp(tokens: &[Token]) -> (&[Token],Exp) {
     match tokens {
@@ -454,5 +403,7 @@ fn parse_exp16(){
 fn parse_exp17(){
     let tokens = vec![Token::STRUCT,Token::VAR(format!("Hoge")),Token::LBRACE,Token::VAR(format!("hoge")),Token::COLON,Token::VAR(format!("Int")),Token::RBRACE];
     let (rest,stmt) = parse_stmt(&tokens);
-    assert_eq!(stmt,Stmt::StructDec(format!("Hoge"),vec![(format!("hoge"),Typ::IntTyp)]))
+    let mut content = HashMap::new();
+    content.insert(format!("hoge"),Typ::IntTyp);
+    assert_eq!(stmt,Stmt::StructDec(format!("Hoge"),content))
 }

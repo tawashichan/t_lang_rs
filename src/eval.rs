@@ -1,7 +1,7 @@
 ///意味解析フェーズ
 /// 型検査と環境の設定を行う
 
-use ast::{Typ,Exp,Stmt,Dec,Prog};
+use ast::{Typ,Exp,Stmt,Prog};
 use std::collections::HashMap;
 
 #[derive(Clone,Debug)]
@@ -40,13 +40,23 @@ pub fn eval_prog(p: Prog) -> Env{
 
 pub fn eval_stmt(stmt: Stmt,env: Env) -> Env {
     match stmt {
-        Stmt::CallProc(s,exps) => env,
+        Stmt::CallProc(s,exps) => eval_proc(s,exps,env),
+        Stmt::ExpStmt(exp) => eval_expr(exp,env),
         _ => env
     }
 }
 
-pub fn eval_expr(expr: Exp,env: Env) -> Env {
-    env
+pub fn eval_expr(exp: Exp,env: Env) -> Env {
+    match exp {
+        Exp::BoolExp(b) => env,
+        _ => env
+    }
+}
+
+pub fn eval_proc(s: String,exps: Vec<Exp>,env: Env) -> Env {
+    exps.into_iter().fold(env,|e,current|
+        eval_expr(current,e)
+    )
 }
 
 
