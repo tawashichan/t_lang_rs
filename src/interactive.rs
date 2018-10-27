@@ -2,6 +2,7 @@ use std::io::{self, BufRead};
 
 use parser;
 use lexer;
+use eval;
 
 //interactive tawashi
 pub fn start_itl() {
@@ -15,6 +16,8 @@ pub fn start_itl() {
                 let tokens = lexer::str_to_tokens(&s);
                 let ast = parser::parse(&tokens);
                 println!("{:?}", ast);
+                let obj = eval::eval_prog(ast);
+                println!("{:?}",obj);
                 s = format!("");
             } else {
                 s = s + &l;

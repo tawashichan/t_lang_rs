@@ -29,47 +29,47 @@ pub struct Env{
 }
 
 
-pub fn eval_prog(p: Prog) -> Env{
+pub fn eval_prog(p: Prog) -> Object{
     let env = Env{
         vars: HashMap::new(),
         functions: HashMap::new(),
         prev: None
     };
-    p.stmts.into_iter().fold(env,  |e,current|
+    let (ob,e) = p.stmts.into_iter().fold((Object::NoneObj,env),  |(obj,e),current|
         eval_stmt(current,e)
-    )
+    );
+    ob
 }
 
-pub fn eval_stmt(stmt: Stmt,env: Env) -> Env {
-    /*match stmt {
-        Stmt::CallProc(s,exps) => eval_proc(s,exps,env),
+fn eval_stmt(stmt: Stmt,env: Env) -> (Object,Env) {
+    match stmt {
+        //Stmt::CallProc(s,exps) => eval_proc(s,exps,env),
         Stmt::ExpStmt(exp) => eval_expr(exp,env),
-        _ => env
-    }*/
-    env
-}
-
-pub fn eval_expr(exp: &Exp,env: &Env) -> Object {
-    match exp {
-        Exp::BoolExp(b) => Object::Bool(*b),
-        Exp::IntExp(i) => Object::Int(*i),
-        Exp::CallFunc(name,exps) => exec_func(name,exps,env),
-        _ => Object::Int(0)
+        _ => (Object::NoneObj,env)
     }
 }
 
-pub fn eval_proc(s: String,exps: Vec<Exp>,env: Env) -> Env {
+fn eval_expr(exp: Exp,env: Env) -> (Object,Env) {
+    match exp {
+        //Exp::BoolExp(b) => (Object::Bool(*b),env)
+        Exp::IntExp(i) => (Object::Int(i),env),
+        //Exp::CallFunc(name,exps) => exec_func(name,exps,env),
+        _ => (Object::Int(0),env)
+    }
+}
+
+/*pub fn eval_proc(s: String,exps: Vec<Exp>,env: Env) -> Env {
     /*exps.into_iter().fold(env,|e,current|
         eval_expr(current,&e)
     );*/
     env
-}
+}*/
 
-fn exec_func(name: &String,exps: &Vec<Exp>,env: &Env) -> Object {
+fn exec_func(name: String,exps: Vec<Exp>,env: Env) -> Object {
     match name.as_str() {
         "print" => {
             check_arg_num(&name,&exps);
-            let obj = eval_expr(exps.first().unwrap(),&env);
+            let obj = eval_expr(exps.first().unwrap().clone(),env);
             println!("{:?}",obj);
             Object::NoneObj
         }
@@ -97,12 +97,12 @@ fn check_func(){
         functions: HashMap::new(),
         prev: None
     };
-    let exp = Exp::IntExp(10);
-    let obj = eval_expr(&exp,&env);
+    let prog = Prog{stmts: vec![Stmt::ExpStmt(Exp::IntExp(10))]};
+    let obj = eval_prog(prog);
     assert_eq!(obj,Object::Int(10))
 }
 
-#[test]
+/*#[test]
 fn check_func2(){
      let env = Env{
         vars: HashMap::new(),
@@ -110,6 +110,6 @@ fn check_func2(){
         prev: None
     };
     let exp = Exp::CallFunc(format!("print"),vec![Exp::IntExp(10)]);
-    let obj = eval_expr(&exp,&env);
+    let (obj,e) = eval_expr(exp,env);
     assert_eq!(obj,Object::NoneObj)
-}
+}*/
