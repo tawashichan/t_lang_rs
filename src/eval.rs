@@ -53,7 +53,7 @@ fn eval_expr(exp: Exp,env: Env) -> (Object,Env) {
     match exp {
         //Exp::BoolExp(b) => (Object::Bool(*b),env)
         Exp::IntExp(i) => (Object::Int(i),env),
-        //Exp::CallFunc(name,exps) => exec_func(name,exps,env),
+        Exp::CallFunc(name,exps) => exec_func(name,exps,env),
         _ => (Object::Int(0),env)
     }
 }
@@ -65,17 +65,97 @@ fn eval_expr(exp: Exp,env: Env) -> (Object,Env) {
     env
 }*/
 
-fn exec_func(name: String,exps: Vec<Exp>,env: Env) -> Object {
+fn exec_func(name: String,exps: Vec<Exp>,env: Env) -> (Object,Env) {
     match name.as_str() {
         "print" => {
             check_arg_num(&name,&exps);
-            let obj = eval_expr(exps.first().unwrap().clone(),env);
+            let (obj,en) = eval_expr(exps.first().unwrap().clone(),env);
             println!("{:?}",obj);
-            Object::NoneObj
+            (Object::NoneObj,en)
+        }
+        "+" => {
+            check_arg_num(&name,&exps);
+            let (arg1,en) = eval_expr(exps[0].clone(),env);
+            let (arg2,e) = eval_expr(exps[1].clone(),en);
+            (add_int(arg1,arg2),e)
+        }
+         "-" => {
+            check_arg_num(&name,&exps);
+            let (arg1,en) = eval_expr(exps[0].clone(),env);
+            let (arg2,e) = eval_expr(exps[1].clone(),en);
+            (minus_int(arg1,arg2),e)
+        }
+        "*" => {
+            check_arg_num(&name,&exps);
+            let (arg1,en) = eval_expr(exps[0].clone(),env);
+            let (arg2,e) = eval_expr(exps[1].clone(),en);
+            (mul_int(arg1,arg2),e)
+        }
+        "/" => {
+            check_arg_num(&name,&exps);
+            let (arg1,en) = eval_expr(exps[0].clone(),env);
+            let (arg2,e) = eval_expr(exps[1].clone(),en);
+            (div_int(arg1,arg2),e)
         }
         _ => {
-            Object::NoneObj
+            (Object::NoneObj,env)
         }    
+    }
+}
+
+fn add_int(i1: Object,i2: Object) -> Object {
+    match i1 {
+        Object::Int(i) => {
+            match i2 {
+                Object::Int(ii) => {
+                    Object::Int(i + ii)
+                }
+                _ => panic!()
+            }
+        }
+        _ => panic!()
+    }
+}
+
+fn mul_int(i1: Object,i2: Object) -> Object {
+    match i1 {
+        Object::Int(i) => {
+            match i2 {
+                Object::Int(ii) => {
+                    Object::Int(i * ii)
+                }
+                _ => panic!()
+            }
+        }
+        _ => panic!()
+    }
+}
+
+fn minus_int(i1: Object,i2: Object) -> Object {
+    match i1 {
+        Object::Int(i) => {
+            match i2 {
+                Object::Int(ii) => {
+                    Object::Int(i - ii)
+                }
+                _ => panic!()
+            }
+        }
+        _ => panic!()
+    }
+}
+
+fn div_int(i1: Object,i2: Object) -> Object {
+    match i1 {
+        Object::Int(i) => {
+            match i2 {
+                Object::Int(ii) => {
+                    Object::Int(i / ii)
+                }
+                _ => panic!()
+            }
+        }
+        _ => panic!()
     }
 }
 
@@ -83,6 +163,11 @@ fn check_arg_num(func_name: &str,exps: &Vec<Exp>) {
     match func_name {
         "print" => {
             if exps.len() != 1 {
+                panic!("too many args for print")
+            }
+        }
+        "+" => {
+            if exps.len() != 2 {
                 panic!("too many args for print")
             }
         }
