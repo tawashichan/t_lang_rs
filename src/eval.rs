@@ -1,4 +1,4 @@
-///意味解析フェーズ
+/// とりあえずインタプリタ
 /// 型検査と環境の設定を行う
 
 use ast::{Typ,Exp,Stmt,Prog};
@@ -51,7 +51,7 @@ fn eval_stmt(stmt: Stmt,env: Env) -> (Object,Env) {
 
 fn eval_expr(exp: Exp,env: Env) -> (Object,Env) {
     match exp {
-        //Exp::BoolExp(b) => (Object::Bool(*b),env)
+        Exp::BoolExp(b) => (Object::Bool(b),env),
         Exp::IntExp(i) => (Object::Int(i),env),
         Exp::CallFunc(name,exps) => exec_func(name,exps,env),
         _ => (Object::Int(0),env)
@@ -166,7 +166,7 @@ fn check_arg_num(func_name: &str,exps: &Vec<Exp>) {
                 panic!("too many args for print")
             }
         }
-        "+" => {
+        "+" | "-" | "*" | "/" => {
             if exps.len() != 2 {
                 panic!("too many args for print")
             }

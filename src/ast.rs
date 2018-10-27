@@ -55,12 +55,6 @@ pub enum Exp {
     If(Box<Exp>,Box<Stmt>,Option<Box<Stmt>>),
 }
 
-/*#[derive(Debug,Clone,PartialEq)]
-pub enum Dec{
-    FuncDec(String,Vec<(Typ,String)>,Typ,Stmt),
-    VarDec(Typ,String)
-}*/
-
 #[derive(Debug,Clone,PartialEq)]
 pub enum Typ {
     NameTyp(String),

@@ -23,7 +23,6 @@ pub enum Token {
     ELSE,
     FUNCTION,
     VAR(String),
-    BOOLEAN(bool),
     RETURN,
     NOT,
     TRUE,
@@ -81,10 +80,23 @@ fn get_keyword_sub(str_vec: &[char], acm: String) -> (Token, &[char]) {
                 "fun" => (Token::FUNCTION, str_vec),
                 "return" => (Token::RETURN,str_vec),
                 "==" => (Token::EQUAL,str_vec),
+                "true" => (Token::TRUE, str_vec),
+                "false" => (Token::FALSE, str_vec),
                 s =>  (Token::VAR(s.to_string()),str_vec)
             }
         }
-        &[] => panic!("invalid tokens")//(acm,&[]),
+        &[] =>  match &*acm {
+                "struct" => (Token::STRUCT, str_vec),
+                "let" => (Token::LET, str_vec),
+                "if" => (Token::IF, str_vec),
+                "else" => (Token::ELSE, str_vec),
+                "fun" => (Token::FUNCTION, str_vec),
+                "return" => (Token::RETURN,str_vec),
+                "==" => (Token::EQUAL,str_vec),
+                "true" => (Token::TRUE, str_vec),
+                "false" => (Token::FALSE, str_vec),
+                s =>  (Token::VAR(s.to_string()),str_vec)
+            }
     }
 }
 

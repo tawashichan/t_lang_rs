@@ -408,3 +408,11 @@ fn parse_exp17(){
     content.insert(format!("hoge"),Typ::IntTyp);
     assert_eq!(stmt,Stmt::StructDec(format!("Hoge"),content))
 }
+
+#[test]
+fn parse_exp18() {
+    let tokens = vec![Token::INT(10), Token::INT(11)];
+    let (rest, exp) = parse_exp(&tokens);
+    assert_eq!(exp,Exp::IntExp(10));
+    assert_eq!(rest.len(),1);
+}
