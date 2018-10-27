@@ -10,6 +10,7 @@ mod eval;
 mod interactive;
 mod proc_parser;
 
+
 use ast::*;
 use ast::Stmt::*;
 use ast::Exp::*;
@@ -19,9 +20,6 @@ use lexer::Token;
 
 fn main() {
     interactive::start_itl();
-    /*let tokens = vec![Token::LPAR,Token::LPAR,Token::INT(7),Token::RPAR,Token::PLUS,Token::INT(4),Token::RPAR];
-    let (ast) = parser::parse(&tokens);
-    println!("end {:?}",ast);*/
 }
 
 #[test]
@@ -52,7 +50,7 @@ fn sample_string11<'a>() {
     let tokens = lexer::str_to_tokens(s);
     let ast = parser::parse(&tokens);
     let target_ast = ast::Prog{
-        stmts: vec![FuncDec(format!("hoge"), vec![(format!("aa"), IntTyp),(format!("bb"), IntTyp)], IntTyp, vec![CallProc(format!("return"), vec![CallFunc(format!("+"), vec![IntExp(1), IntExp(1)])])])]
+        stmts: vec![FuncDec(format!("hoge"), vec![(format!("aa"), IntTyp),(format!("bb"), IntTyp)], IntTyp, box Block(vec![CallProc(format!("return"), vec![CallFunc(format!("+"), vec![IntExp(1), IntExp(1)])])]))]
     };
     assert_eq!(target_ast,ast)
 }
@@ -100,7 +98,7 @@ fn sample_string7<'a>(){
     let tokens = lexer::str_to_tokens(s);
     let ast = parser::parse(&tokens);
     let target_ast = Prog {
-        stmts: vec![FuncDec(format!("huga"), vec![(format!("foo"), IntTyp)], IntTyp, vec![CallProc(format!("return"), vec![CallFunc(format!("+"), vec![IntExp(1), IntExp(1)])])]), CallProc(format!("return"), vec![CallFunc(format!("huga"), vec![IntExp(1)])])]
+        stmts: vec![FuncDec(format!("huga"), vec![(format!("foo"), IntTyp)], IntTyp, box Block(vec![CallProc(format!("return"), vec![CallFunc(format!("+"), vec![IntExp(1), IntExp(1)])])])), CallProc(format!("return"), vec![CallFunc(format!("huga"), vec![IntExp(1)])])]
     };
     assert_eq!(target_ast,ast)
 }
@@ -118,36 +116,9 @@ fn sample_string<'a>() {
     let tokens = lexer::str_to_tokens(s);
     let ast = parser::parse(&tokens);
     let target_ast = Prog {
-        stmts: vec![Assign(Var(format!("hoge")), IntExp(1)), FuncDec(format!("huga"), vec![(format!("foo"), IntTyp)], IntTyp, vec![CallProc(format!("return"), vec![CallFunc(format!("+"), vec![VarExp(box Var(format!("foo"))), IntExp(1)])])]), Assign(Var(format!("aaa")), CallFunc(format!("+"), vec![IntExp(4), CallFunc(format!("+"), vec![CallFunc(format!("huga"), vec![VarExp(box Var(format!("hoge"))), VarExp(box Var(format!("tawawa")))]), IntExp(7)])])), CallProc(format!("print"), vec![VarExp(box Var(format!("aaa")))])]
+        stmts: vec![Assign(Var(format!("hoge")), IntExp(1)), FuncDec(format!("huga"), vec![(format!("foo"), IntTyp)], IntTyp, box Block(vec![CallProc(format!("return"), vec![CallFunc(format!("+"), vec![VarExp(box Var(format!("foo"))), IntExp(1)])])])), Assign(Var(format!("aaa")), CallFunc(format!("+"), vec![IntExp(4), CallFunc(format!("+"), vec![CallFunc(format!("huga"), vec![VarExp(box Var(format!("hoge"))), VarExp(box Var(format!("tawawa")))]), IntExp(7)])])), CallProc(format!("print"), vec![VarExp(box Var(format!("aaa")))])]
     };
     assert_eq!(target_ast,ast)
-}
-
-fn sample_string6<'a>() -> &'a str {
-    "let a = 1 + 1 + 6"
-}
-
-fn sample_string5<'a>() -> &'a str {
-    "return 1 + 1"
-}
-
-fn sample_string4<'a>() -> &'a str {
-    "let fa = 1 + 1
-     let aa = 2 + 2
-    "
-}
-
-fn sample_string3<'a>() -> &'a str {
-    "fun huga(foo Int) Int {
-            foo + 1
-      }
-    "
-}
-
-fn sample_string2<'a>() -> &'a str {
-    "let hoge = 1
-     let aaa = huga(hoge)
-    "
 }
 
 

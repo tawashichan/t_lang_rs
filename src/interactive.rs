@@ -9,7 +9,6 @@ pub fn start_itl() {
     loop {
         let mut s = String::new();
         let stdin = io::stdin();
-
         for line in stdin.lock().lines() {
             let l = line.unwrap();
             if l == "" {

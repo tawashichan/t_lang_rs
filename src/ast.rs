@@ -37,8 +37,8 @@ pub enum Var {
 pub enum Stmt {
     Assign(Var,Exp),
     CallProc(String,Vec<Exp>),
-    //Block(Vec<Dec>,Vec<Stmt>),
-    FuncDec(String,Vec<(String,Typ)>,Typ,Vec<Stmt>),
+    Block(Vec<Stmt>),
+    FuncDec(String,Vec<(String,Typ)>,Typ,Box<Stmt>),
     VarDec(Typ,String),
     StructDec(String,HashMap<String,Typ>),
     ExpStmt(Exp), // 式文
@@ -52,7 +52,7 @@ pub enum Exp {
     IntExp(i64),
     BoolExp(bool),
     CallFunc(String,Vec<Exp>),
-    If(Box<Exp>,Vec<Stmt>,Option<Vec<Stmt>>),
+    If(Box<Exp>,Box<Stmt>,Option<Box<Stmt>>),
 }
 
 /*#[derive(Debug,Clone,PartialEq)]

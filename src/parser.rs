@@ -63,6 +63,7 @@ fn parse_struct(tokens: &[Token]) -> (&[Token],Stmt){
     }
 }
 
+// tokensとcontentsのライフタイムは異なる
 fn parse_struct_contents<'a,'b>(tokens: &'a[Token],contents: &'b mut HashMap<String,Typ>) -> (&'a[Token],&'b mut HashMap<String,Typ>){
     match tokens {
         [Token::VAR(s),Token::COLON,rest..] => {
@@ -83,7 +84,7 @@ fn parse_function(tokens: &[Token]) -> (&[Token],Stmt) {
             let (res,args) = parse_func_def_args(rest);
             let (re,typ) = parse_type(res);
             let (r,stmts) = parse_stmts(re,&mut vec![]);
-            (r,Stmt::FuncDec(s.clone(),args,typ,stmts))
+            (r,Stmt::FuncDec(s.clone(),args,typ,box Stmt::Block(stmts)))
         }
         _ => panic!()
     }
@@ -162,10 +163,10 @@ fn parse_exp(tokens: &[Token]) -> (&[Token],Exp) {
             match re {
                 [Token::ELSE,r..] => {
                     let (rr,els) = parse_stmts(r,&mut vec![]);
-                    (rr,Exp::If(box cond,then,Some(els)))
+                    (rr,Exp::If(box cond,box Stmt::Block(then),Some(box Stmt::Block(els))))
                 }
                 _ => {
-                    (re,Exp::If(box cond,then,None))
+                    (re,Exp::If(box cond,box Stmt::Block(then),None))
                 }
             }
         }
@@ -216,10 +217,10 @@ fn parse_mul_div_expr(tokens: &[Token]) -> (&[Token], Exp) {
             match re {
                 [Token::ELSE,r..] => {
                     let (rr,els) = parse_stmts(r,&mut vec![]);
-                    (rr,Exp::If(box cond,then,Some(els)))
+                    (rr,Exp::If(box cond,box Stmt::Block(then),Some(box Stmt::Block(els))))
                 }
                 _ => {
-                    (re,Exp::If(box cond,then,None))
+                    (re,Exp::If(box cond,box Stmt::Block(then),None))
                 }
             }
         }
@@ -389,14 +390,14 @@ fn parse_exp14(){
 fn parse_exp15(){
     let tokens = vec![Token::IF,Token::TRUE,Token::LBRACE,Token::TRUE,Token::RBRACE,Token::ELSE,Token::LBRACE,Token::TRUE,Token::RBRACE];
     let (rest,exp) = parse_exp(&tokens);
-    assert_eq!(exp,Exp::If(box Exp::BoolExp(true),vec![Stmt::ExpStmt(Exp::BoolExp(true))],Some(vec![Stmt::ExpStmt(Exp::BoolExp(true))])))
+    assert_eq!(exp,Exp::If(box Exp::BoolExp(true),box Stmt::Block(vec![Stmt::ExpStmt(Exp::BoolExp(true))]),Some(box Stmt::Block(vec![Stmt::ExpStmt(Exp::BoolExp(true))]))))
 }
 
 #[test]
 fn parse_exp16(){
     let tokens = vec![Token::IF,Token::TRUE,Token::LBRACE,Token::TRUE,Token::RBRACE,Token::ELSE,Token::LBRACE,Token::TRUE,Token::RBRACE];
     let (rest,exp) = parse_exp(&tokens);
-    assert_eq!(exp,Exp::If(box Exp::BoolExp(true),vec![Stmt::ExpStmt(Exp::BoolExp(true))],Some(vec![Stmt::ExpStmt(Exp::BoolExp(true))])))
+    assert_eq!(exp,Exp::If(box Exp::BoolExp(true),box Stmt::Block(vec![Stmt::ExpStmt(Exp::BoolExp(true))]),Some(box Stmt::Block(vec![Stmt::ExpStmt(Exp::BoolExp(true))]))))
 }
 
 #[test]
