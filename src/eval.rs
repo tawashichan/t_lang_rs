@@ -1,14 +1,14 @@
 /// とりあえずインタプリタ
 /// 型検査と環境の設定を行う
 
-use ast::{Typ,Exp,Stmt,Prog};
+use ast::{Typ,Exp,Stmt,Prog,Var};
 use std::collections::HashMap;
 
 #[derive(Clone,Debug)]
 pub struct FuncContent {
     name: String,
     args: Vec<(String,Typ)>,
-    content: Vec<Stmt>,
+    content: Stmt,
     return_type: Typ
 }
 
@@ -21,42 +21,77 @@ pub enum Object {
 }
 
 //関数や変数を管理
+//コピー発生しまくりなのでどっかで参照になおす
 #[derive(Clone,Debug)]
 pub struct Env{
-    vars: HashMap<String,Exp>,
+    vars: HashMap<String,Object>,
     functions: HashMap<String,FuncContent>,
     prev: Option<Box<Env>>
 }
 
 
-pub fn eval_prog(p: Prog) -> Object{
-    let env = Env{
+pub fn eval_prog(p: Prog,env: Env) -> (Object,Env) {
+    p.stmts.into_iter().fold((Object::NoneObj,env),  |(obj,e),current|
+        eval_stmt(current,e)
+    )
+}
+
+pub fn init_env() -> Env {
+     Env{
         vars: HashMap::new(),
         functions: HashMap::new(),
         prev: None
-    };
-    let (ob,e) = p.stmts.into_iter().fold((Object::NoneObj,env),  |(obj,e),current|
-        eval_stmt(current,e)
-    );
-    ob
+    }
+} 
+
+fn make_local_env(env: Env) -> Env {
+    Env{
+        vars: HashMap::new(),
+        functions: HashMap::new(),
+        prev: Some(box env)
+    }
 }
 
 fn eval_stmt(stmt: Stmt,env: Env) -> (Object,Env) {
     match stmt {
         //Stmt::CallProc(s,exps) => eval_proc(s,exps,env),
-        Stmt::ExpStmt(exp) => eval_expr(exp,env),
+        Stmt::Block(stmts) => {
+            let local_env = make_local_env(env.clone());
+            let (obj,e) = stmts.into_iter().fold((Object::NoneObj,local_env),  |(obj,e),current|
+                eval_stmt(current,e)
+            );
+            (obj,env)
+        } 
+        Stmt::Assign(Var::Var(s),exp) =>  {
+            let (obj,mut en) = eval_exp(exp,env);
+            en.vars.insert(s,obj);
+            (Object::NoneObj,en)
+        }
+        Stmt::ExpStmt(exp) => eval_exp(exp,env),
         _ => (Object::NoneObj,env)
     }
 }
 
-fn eval_expr(exp: Exp,env: Env) -> (Object,Env) {
+fn eval_exp(exp: Exp,env: Env) -> (Object,Env) {
     match exp {
         Exp::BoolExp(b) => (Object::Bool(b),env),
         Exp::IntExp(i) => (Object::Int(i),env),
         Exp::CallFunc(name,exps) => exec_func(name,exps,env),
+        Exp::VarExp(box Var::Var(s)) => {
+            let val = search_val(s.clone(),&env); 
+            match val {
+                Some(v) => {
+                    (v,env)
+                }
+                None => {
+                    panic!("val {:?} is undefined",s.clone())
+                }
+            }
+        }
         _ => (Object::Int(0),env)
     }
 }
+
 
 /*pub fn eval_proc(s: String,exps: Vec<Exp>,env: Env) -> Env {
     /*exps.into_iter().fold(env,|e,current|
@@ -65,36 +100,40 @@ fn eval_expr(exp: Exp,env: Env) -> (Object,Env) {
     env
 }*/
 
+/*fn add_val(env: Env,name: Srting,typ: Typ) -> Env {
+    env.vars.insert(name,)
+}*/
+ 
 fn exec_func(name: String,exps: Vec<Exp>,env: Env) -> (Object,Env) {
     match name.as_str() {
         "print" => {
             check_arg_num(&name,&exps);
-            let (obj,en) = eval_expr(exps.first().unwrap().clone(),env);
+            let (obj,en) = eval_exp(exps.first().unwrap().clone(),env);
             println!("{:?}",obj);
             (Object::NoneObj,en)
         }
         "+" => {
             check_arg_num(&name,&exps);
-            let (arg1,en) = eval_expr(exps[0].clone(),env);
-            let (arg2,e) = eval_expr(exps[1].clone(),en);
+            let (arg1,en) = eval_exp(exps[0].clone(),env);
+            let (arg2,e) = eval_exp(exps[1].clone(),en);
             (add_int(arg1,arg2),e)
         }
          "-" => {
             check_arg_num(&name,&exps);
-            let (arg1,en) = eval_expr(exps[0].clone(),env);
-            let (arg2,e) = eval_expr(exps[1].clone(),en);
+            let (arg1,en) = eval_exp(exps[0].clone(),env);
+            let (arg2,e) = eval_exp(exps[1].clone(),en);
             (minus_int(arg1,arg2),e)
         }
         "*" => {
             check_arg_num(&name,&exps);
-            let (arg1,en) = eval_expr(exps[0].clone(),env);
-            let (arg2,e) = eval_expr(exps[1].clone(),en);
+            let (arg1,en) = eval_exp(exps[0].clone(),env);
+            let (arg2,e) = eval_exp(exps[1].clone(),en);
             (mul_int(arg1,arg2),e)
         }
         "/" => {
             check_arg_num(&name,&exps);
-            let (arg1,en) = eval_expr(exps[0].clone(),env);
-            let (arg2,e) = eval_expr(exps[1].clone(),en);
+            let (arg1,en) = eval_exp(exps[0].clone(),env);
+            let (arg2,e) = eval_exp(exps[1].clone(),en);
             (div_int(arg1,arg2),e)
         }
         _ => {
@@ -175,26 +214,46 @@ fn check_arg_num(func_name: &str,exps: &Vec<Exp>) {
     }
 }
 
+fn search_func(name: String,env: &Env) -> Option<FuncContent> {
+    match env.functions.get(&name) {
+        Some(f) => Some(f.clone()),
+        None => match &env.prev {
+            Some(p) => search_func(name,p),
+            None => None
+        }
+    }
+}
+
+fn search_val(name: String,env: &Env) -> Option<Object> {
+    match env.vars.get(&name) {
+        Some(v) => Some(v.clone()),
+        None => match &env.prev {
+            Some(p) => search_val(name,p),
+            None => None
+        }
+    }
+}
+
+
 #[test]
 fn check_func(){
-     let env = Env{
-        vars: HashMap::new(),
-        functions: HashMap::new(),
-        prev: None
-    };
     let prog = Prog{stmts: vec![Stmt::ExpStmt(Exp::IntExp(10))]};
-    let obj = eval_prog(prog);
+    let (obj,_e) = eval_prog(prog,init_env());
     assert_eq!(obj,Object::Int(10))
 }
 
+#[test]
+fn check_assign(){
+    let stmt = Stmt::Assign(Var::Var(format!("hoge")),Exp::IntExp(10));
+    let (obj,e) = eval_stmt(stmt,init_env());
+    println!("{:?}",e);
+    assert_eq!(obj,Object::NoneObj)
+}
+
+
 /*#[test]
-fn check_func2(){
-     let env = Env{
-        vars: HashMap::new(),
-        functions: HashMap::new(),
-        prev: None
-    };
-    let exp = Exp::CallFunc(format!("print"),vec![Exp::IntExp(10)]);
-    let (obj,e) = eval_expr(exp,env);
+fn check_var(){
+    let prog = Prog{stmts: vec![Stmt::Assign(Var::Var(format!("hoge")),Exp::IntExp(10)),Stmt::]};
+    let obj = eval_prog(prog);
     assert_eq!(obj,Object::NoneObj)
 }*/

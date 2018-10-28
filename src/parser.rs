@@ -151,6 +151,7 @@ fn parse_type_str(s: &str) -> Typ {
 fn parse_type(tokens: &[Token]) -> (&[Token],Typ){
     match tokens {
         [Token::VAR(s),rest..] => (rest,parse_type_str(s)),
+        [Token::LBRACE,rest..] => (tokens,Typ::VoidTyp),
         _ => panic!()
     }
 }

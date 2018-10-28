@@ -10,14 +10,17 @@ pub fn start_itl() {
     loop {
         let mut s = String::new();
         let stdin = io::stdin();
+        let mut env = eval::init_env();
         for line in stdin.lock().lines() {
             let l = line.unwrap();
             if l == "" {
                 let tokens = lexer::str_to_tokens(&s);
                 let ast = parser::parse(&tokens);
                 println!("{:?}", ast);
-                let obj = eval::eval_prog(ast);
+                let (obj,e) = eval::eval_prog(ast,env);
+                env = e;
                 println!("{:?}",obj);
+                println!("{:?}",env);
                 s = format!("");
             } else {
                 s = s + &l;

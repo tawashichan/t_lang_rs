@@ -4,7 +4,7 @@
 /// let hoge = 1
 ///
 /// 関数
-/// function hoge (huga Type,foo Type) Type {
+/// fun hoge (huga Type,foo Type) Type {
 ///
 /// }
 ///
@@ -39,7 +39,6 @@ pub enum Stmt {
     CallProc(String,Vec<Exp>),
     Block(Vec<Stmt>),
     FuncDec(String,Vec<(String,Typ)>,Typ,Box<Stmt>),
-    VarDec(Typ,String),
     StructDec(String,HashMap<String,Typ>),
     ExpStmt(Exp), // 式文
     NilStmt
