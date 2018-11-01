@@ -118,7 +118,7 @@ fn exec_func(name: String,exps: Vec<Exp>,env: Env) -> (Object,Env) {
             let (arg2,e) = eval_exp(exps[1].clone(),en);
             (add_int(arg1,arg2),e)
         }
-         "-" => {
+        "-" => {
             check_arg_num(&name,&exps);
             let (arg1,en) = eval_exp(exps[0].clone(),env);
             let (arg2,e) = eval_exp(exps[1].clone(),en);
