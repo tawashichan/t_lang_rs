@@ -12,6 +12,19 @@ pub fn parse(tokens: &[Token]) -> Prog {
     Prog{ stmts }
 }
 
+fn parse_block(tokens: &[Token]) -> (&[Token],Stmt) {
+    match tokens {
+        [Token::LBRACE,rest..] => {
+            let (res,stmts) = parse_stmts(rest,&mut vec![]);
+            match res {
+                [Token::RBRACE,re..] => (re,Stmt::Block(stmts)),
+                _ => panic!()
+            }
+        }
+        _ => panic!()
+    }
+}
+
 fn parse_stmts<'a>(tokens: &'a[Token],stmts: &mut Vec<Stmt>) -> (&'a[Token],Vec<Stmt>) {
     match tokens {
         [Token::LBRACE,rest..] => parse_stmts(rest,&mut vec![]), // ここあまりきれいじゃない...
@@ -192,7 +205,7 @@ fn parse_op_exp(tokens: &[Token]) -> (&[Token],Exp) {
 
 fn parse_term(tokens: &[Token]) -> (&[Token],Exp) {
     match tokens {
-         [Token::LPAR,rest..] => {
+        [Token::LPAR,rest..] => {
             let (res,exp) = parse_exp(rest);
             match res {
                 [Token::RPAR,re..] => {
@@ -216,10 +229,10 @@ fn parse_term(tokens: &[Token]) -> (&[Token],Exp) {
                 }
             }
         }
-         [Token::INT(i),rest..] => {
+        [Token::INT(i),rest..] => {
             (rest,Exp::IntExp(*i))
         }
-         [Token::VAR(s),Token::LPAR,rest..] => {
+        [Token::VAR(s),Token::LPAR,rest..] => {
             let (res,args) = parse_func_call_args(tokens);
             (res,Exp::CallFunc(s.clone(),args))
         }
