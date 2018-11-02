@@ -69,23 +69,10 @@ fn get_keyword(str_vec: &[char]) -> (Token, &[char]){
 
 fn get_keyword_sub(str_vec: &[char], acm: String) -> (Token, &[char]) {
     match str_vec {
-        [first, rest..] => if first.is_alphabetic() {
+        [first, rest..] if first.is_alphabetic() => {
             get_keyword_sub(rest, format!("{}{}", acm, first))
-        } else {
-            match &*acm {
-                "struct" => (Token::STRUCT, str_vec),
-                "let" => (Token::LET, str_vec),
-                "if" => (Token::IF, str_vec),
-                "else" => (Token::ELSE, str_vec),
-                "fun" => (Token::FUNCTION, str_vec),
-                "return" => (Token::RETURN,str_vec),
-                "==" => (Token::EQUAL,str_vec),
-                "true" => (Token::TRUE, str_vec),
-                "false" => (Token::FALSE, str_vec),
-                s =>  (Token::VAR(s.to_string()),str_vec)
-            }
         }
-        &[] =>  match &*acm {
+        _ =>  match &*acm {
                 "struct" => (Token::STRUCT, str_vec),
                 "let" => (Token::LET, str_vec),
                 "if" => (Token::IF, str_vec),

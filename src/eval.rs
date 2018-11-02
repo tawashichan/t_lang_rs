@@ -6,7 +6,6 @@ use std::collections::HashMap;
 
 #[derive(Clone,Debug)]
 pub struct FuncContent {
-    name: String,
     args: Vec<(String,Typ)>,
     content: Stmt,
     return_type: Typ
@@ -52,7 +51,7 @@ fn make_local_env(env: Env) -> Env {
     }
 }
 
-fn eval_stmt(stmt: Stmt,env: Env) -> (Object,Env) {
+fn eval_stmt(stmt: Stmt,mut env: Env) -> (Object,Env) {
     match stmt {
         //Stmt::CallProc(s,exps) => eval_proc(s,exps,env),
         Stmt::Block(stmts) => {
@@ -62,6 +61,15 @@ fn eval_stmt(stmt: Stmt,env: Env) -> (Object,Env) {
             );
             (obj,env)
         } 
+        Stmt::FuncDec(name,args,return_type,box content) => {
+            let func = FuncContent{
+                args: args,
+                return_type: return_type,
+                content: content
+            };
+            env.functions.insert(name.clone(),func);
+            (Object::NoneObj,env)
+        }
         Stmt::Assign(Var::Var(s),exp) =>  {
             let (obj,mut en) = eval_exp(exp,env);
             en.vars.insert(s,obj);
@@ -76,7 +84,7 @@ fn eval_exp(exp: Exp,env: Env) -> (Object,Env) {
     match exp {
         Exp::BoolExp(b) => (Object::Bool(b),env),
         Exp::IntExp(i) => (Object::Int(i),env),
-        Exp::CallFunc(name,exps) => exec_func(name,exps,env),
+        Exp::CallFunc(name,exps) => call_func(name,exps,env),
         Exp::VarExp(box Var::Var(s)) => {
             let val = search_val(s.clone(),&env); 
             match val {
@@ -104,7 +112,7 @@ fn eval_exp(exp: Exp,env: Env) -> (Object,Env) {
     env.vars.insert(name,)
 }*/
  
-fn exec_func(name: String,exps: Vec<Exp>,env: Env) -> (Object,Env) {
+fn call_func(name: String,exps: Vec<Exp>,env: Env) -> (Object,Env) {
     match name.as_str() {
         "print" => {
             check_arg_num(&name,&exps);
@@ -141,6 +149,17 @@ fn exec_func(name: String,exps: Vec<Exp>,env: Env) -> (Object,Env) {
         }    
     }
 }
+
+fn call_decleared_func(name: String,args: Vec<Exp>,env: Env) -> (Object,Env) {
+    let func = search_func(name,&env).expect("no such function");
+    let local_env = make_local_env(env.clone());
+
+    (Object::NoneObj,env)
+}
+
+fn eval_func_content(content: Stmt,env: Env) -> Object {
+}
+
 
 fn add_int(i1: Object,i2: Object) -> Object {
     match i1 {
