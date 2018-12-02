@@ -54,7 +54,7 @@ fn make_local_env(env: Env) -> Env {
 
 fn eval_stmt(stmt: Stmt,mut env: Env) -> (Object,Env) {
     match stmt {
-        //Stmt::CallProc(s,exps) => eval_proc(s,exps,env),
+        Stmt::CallProc(s,exps) => (eval_proc(s,exps,&env),env),
         Stmt::Block(stmts) => {
             let local_env = make_local_env(env.clone());
             let (obj,e) = stmts.into_iter().fold((Object::NoneObj,local_env),  |(obj,e),current|
@@ -72,91 +72,111 @@ fn eval_stmt(stmt: Stmt,mut env: Env) -> (Object,Env) {
             (Object::NoneObj,env)
         }
         Stmt::Assign(Var::Var(s),exp) =>  {
-            let (obj,mut en) = eval_exp(exp,env);
-            en.vars.insert(s,obj);
-            (Object::NoneObj,en)
+            let obj = eval_exp(exp,&env);
+            env.vars.insert(s,obj);
+            (Object::NoneObj,env)
         }
-        Stmt::ExpStmt(exp) => eval_exp(exp,env),
+        Stmt::ExpStmt(exp) => (eval_exp(exp,&env),env),
         _ => (Object::NoneObj,env)
     }
 }
 
-fn eval_exp(exp: Exp,env: Env) -> (Object,Env) {
+fn eval_exp(exp: Exp,env: &Env) -> Object {
     match exp {
-        Exp::BoolExp(b) => (Object::Bool(b),env),
-        Exp::IntExp(i) => (Object::Int(i),env),
+        Exp::BoolExp(b) => Object::Bool(b),
+        Exp::IntExp(i) => Object::Int(i),
         Exp::CallFunc(name,exps) => call_func(name,exps,env),
         Exp::VarExp(box Var::Var(s)) => {
             let val = search_val(s.clone(),&env); 
             match val {
                 Some(v) => {
-                    (v,env)
+                    v
                 }
                 None => {
                     panic!("val {:?} is undefined",s.clone())
                 }
             }
         }
-        _ => (Object::Int(0),env)
+        _ => Object::Int(0)
     }
 }
 
+fn eval_block(block: Stmt,env: Env) -> (Object,Env) {
+    match block {
+        Stmt::Block(stmts) => (Object::NoneObj,env),
+        _ => (Object::NoneObj,env)
+    }
+}
 
-/*pub fn eval_proc(s: String,exps: Vec<Exp>,env: Env) -> Env {
-    /*exps.into_iter().fold(env,|e,current|
-        eval_expr(current,&e)
-    );*/
-    env
-}*/
+fn eval_proc(name: String,exps: Vec<Exp>,env: &Env) -> Object {
+    call_func(name,exps,env)
+}
 
-/*fn add_val(env: Env,name: Srting,typ: Typ) -> Env {
-    env.vars.insert(name,)
-}*/
  
-fn call_func(name: String,exps: Vec<Exp>,env: Env) -> (Object,Env) {
+fn call_func(name: String,exps: Vec<Exp>,env: &Env) -> Object {
     match name.as_str() {
         "print" => {
             check_arg_num(&name,&exps);
-            let (obj,en) = eval_exp(exps.first().unwrap().clone(),env);
+            let obj = eval_exp(exps.first().unwrap().clone(),env);
             println!("{:?}",obj);
-            (Object::NoneObj,en)
+            Object::NoneObj
         }
         "+" => {
             check_arg_num(&name,&exps);
-            let (arg1,en) = eval_exp(exps[0].clone(),env);
-            let (arg2,e) = eval_exp(exps[1].clone(),en);
-            (add_int(arg1,arg2),e)
+            let arg1 = eval_exp(exps[0].clone(),env);
+            let arg2 = eval_exp(exps[1].clone(),env);
+            add_int(arg1,arg2)
         }
         "-" => {
             check_arg_num(&name,&exps);
-            let (arg1,en) = eval_exp(exps[0].clone(),env);
-            let (arg2,e) = eval_exp(exps[1].clone(),en);
-            (minus_int(arg1,arg2),e)
+            let arg1 = eval_exp(exps[0].clone(),env);
+            let arg2 = eval_exp(exps[1].clone(),env);
+            minus_int(arg1,arg2)
         }
         "*" => {
             check_arg_num(&name,&exps);
-            let (arg1,en) = eval_exp(exps[0].clone(),env);
-            let (arg2,e) = eval_exp(exps[1].clone(),en);
-            (mul_int(arg1,arg2),e)
+            let arg1 = eval_exp(exps[0].clone(),env);
+            let arg2 = eval_exp(exps[1].clone(),env);
+            mul_int(arg1,arg2)
         }
         "/" => {
             check_arg_num(&name,&exps);
-            let (arg1,en) = eval_exp(exps[0].clone(),env);
-            let (arg2,e) = eval_exp(exps[1].clone(),en);
-            (div_int(arg1,arg2),e)
+            let arg1 = eval_exp(exps[0].clone(),env);
+            let arg2 = eval_exp(exps[1].clone(),env);
+            div_int(arg1,arg2)
         }
         _ => {
-            (Object::NoneObj,env)
+            call_decleared_func(name, exps, env)
         }    
     }
 }
 
-fn call_decleared_func(name: String,args: Vec<Exp>,env: Env) -> (Object,Env) {
+fn call_decleared_func(name: String,args: Vec<Exp>,env: &Env) -> Object {
     let func = search_func(name,&env).expect("no such function");
-    let local_env = make_local_env(env.clone());
-
-    (Object::NoneObj,env)
+    let mut local_env = make_local_env(env.clone());
+    let def_args_len = func.args.len();
+    let call_args_len = args.len();
+    if def_args_len != call_args_len {
+        panic!("invalid length of arguments: def {:?} call {:?}",func.args,args)
+    }
+    let e = bind_args(func.args, args, &mut local_env);
+    println!("{:?}",e);
+    Object::NoneObj
 }
+
+fn bind_args(def_args: Vec<(String,Typ)>,call_args: Vec<Exp>,env: &mut Env) -> &Env {
+    let mut objs = vec![];
+    for exp in call_args.into_iter() {
+        let obj = eval_exp(exp, &env);
+        objs.push(obj);
+    }
+    for ((n,typ),c) in def_args.into_iter().zip(objs.into_iter()) {
+        check_type(&c,&typ);
+        env.vars.insert(n,c);
+    }
+    env
+}
+
 
 fn eval_func_content(content: Stmt,env: &Env) -> Object {
     Object::NoneObj
@@ -252,6 +272,16 @@ fn search_val(name: String,env: &Env) -> Option<Object> {
             Some(p) => search_val(name,p),
             None => None
         }
+    }
+}
+
+fn check_type(target: &Object,expected: &Typ) {
+    match target {
+        Object::Int(i) => match expected {
+            Typ::IntTyp => {},
+            _ => panic!("invalid type: expected: Int actual: {:?}",target)
+        }
+        _ => panic!("invalid type: expected: Int actual: {:?}",target)
     }
 }
 

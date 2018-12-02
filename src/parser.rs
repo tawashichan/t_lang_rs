@@ -70,7 +70,10 @@ fn parse_stmt(tokens: &[Token]) -> (&[Token],Stmt) {
             let (res,block) = parse_block(tokens);
             (res,block)
         },
-        _ => panic!("{:?}",tokens)
+        _ => {
+            let (rest,exp) = parse_exp(tokens);
+            (rest,Stmt::ExpStmt(exp))
+        }
     } 
 }
 
@@ -302,7 +305,7 @@ fn parse_term(tokens: &[Token]) -> (&[Token],Exp) {
 
 fn parse_array<'a>(tokens: &'a[Token],acm: &mut Vec<Exp>) -> (&'a[Token],Vec<Exp>) {
     match tokens {
-        [Token::RBRACKET,rest..] => (tokens,acm.clone()),
+        [Token::RBRACKET,rest..] => (rest,acm.clone()),
         [Token::COMMA,rest..] => parse_array(rest, acm),
         _ => {
             let (rest,exp) = parse_exp(tokens);
@@ -473,4 +476,12 @@ fn parse_stmts3() {
     let tokens = vec![Token::LET,Token::VAR("hoge".to_string()), Token::EQUAL,Token::VAR("huga".to_string())];
     let (rest, stmts) = parse_stmts(&tokens,&mut vec![]);
     assert_eq!(stmts,vec![Stmt::Assign(Var::Var("hoge".to_string()),Exp::VarExp(box Var::Var("huga".to_string())))]);
+}
+
+
+#[test]
+fn parse_stmts4() {
+    let tokens = vec![Token::LBRACE,Token::VAR("hoge".to_string()),Token::RBRACE];
+    let (rest, stmts) = parse_stmts(&tokens,&mut vec![]);
+    assert_eq!(stmts,vec![Stmt::Block(vec![Stmt::ExpStmt(Exp::VarExp(box Var::Var("hoge".to_string())))])]);
 }
