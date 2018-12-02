@@ -44,19 +44,11 @@ pub fn init_env() -> Env {
     }
 } 
 
-fn make_local_env(env: Env) -> Env {
-    Env{
-        vars: HashMap::new(),
-        functions: HashMap::new(),
-        prev: Some(box env)
-    }
-}
-
 fn eval_stmt(stmt: Stmt,mut env: Env) -> (Object,Env) {
     match stmt {
         Stmt::CallProc(s,exps) => (eval_proc(s,exps,&env),env),
         Stmt::Block(stmts) => {
-            let local_env = make_local_env(env.clone());
+            let local_env = env.clone();
             let (obj,e) = stmts.into_iter().fold((Object::NoneObj,local_env),  |(obj,e),current|
                 eval_stmt(current,e)
             );
@@ -103,6 +95,7 @@ fn eval_exp(exp: Exp,env: &Env) -> Object {
         Exp::BoolExp(b) => Object::Bool(b),
         Exp::IntExp(i) => Object::Int(i),
         Exp::CallFunc(name,exps) => call_func(name,exps,env),
+        Exp::If(box cond,box then,box els) => eval_if(cond,then,els,env), 
         Exp::VarExp(box Var::Var(s)) => {
             let val = search_val(s.clone(),&env); 
             match val {
@@ -115,6 +108,22 @@ fn eval_exp(exp: Exp,env: &Env) -> Object {
             }
         }
         _ => Object::Int(0)
+    }
+}
+
+fn eval_if(cond: Exp,then: Stmt,els: Option<Stmt>,env: &Env) -> Object {
+    let con_obj = eval_exp(cond, env);
+    check_type(&con_obj, &Typ::BoolTyp);
+    match con_obj {
+        Object::Bool(b) => if b {
+            eval_block(then, env)
+        } else {
+            match els {
+                Some(e) => eval_block(e, env),
+                None => Object::NoneObj
+            }
+        }
+        _ => panic!()
     }
 }
 
@@ -155,21 +164,30 @@ fn call_func(name: String,exps: Vec<Exp>,env: &Env) -> Object {
             let arg2 = eval_exp(exps[1].clone(),env);
             div_int(arg1,arg2)
         }
+        "=" => {
+            check_arg_num(&name,&exps);
+            let arg1 = eval_exp(exps[0].clone(),env);
+            let arg2 = eval_exp(exps[1].clone(),env);
+            equality(arg1, arg2)
+        }
         _ => {
             call_decleared_func(name, exps, env)
         }    
     }
 }
 
+
+
 fn call_decleared_func(name: String,args: Vec<Exp>,env: &Env) -> Object {
     let func = search_func(name,&env).expect("no such function");
-    let mut local_env = make_local_env(env.clone());
+    let mut local_env = env.clone();
     let def_args_len = func.args.len();
     let call_args_len = args.len();
     if def_args_len != call_args_len {
         panic!("invalid length of arguments: def {:?} call {:?}",func.args,args)
     }
     let e = bind_args(func.args, args, &mut local_env);
+    println!("{:?}",e);
     let obj = eval_block(func.content, e);
     check_type(&obj, &func.return_type);
     obj
@@ -245,6 +263,11 @@ fn div_int(i1: Object,i2: Object) -> Object {
     }
 }
 
+fn equality(o1: Object,o2: Object) -> Object {
+    let b = o1 == o2;
+    Object::Bool(b)
+}
+
 fn check_arg_num(func_name: &str,exps: &Vec<Exp>) {
     match func_name {
         "print" => {
@@ -252,7 +275,7 @@ fn check_arg_num(func_name: &str,exps: &Vec<Exp>) {
                 panic!("too many args for print")
             }
         }
-        "+" | "-" | "*" | "/" => {
+        "+" | "-" | "*" | "/" | "=" => {
             if exps.len() != 2 {
                 panic!("too many args for print")
             }
@@ -287,7 +310,11 @@ fn check_type(target: &Object,expected: &Typ) {
             Typ::IntTyp => {},
             _ => panic!("invalid type: expected: Int actual: {:?}",target)
         }
-        _ => panic!("invalid type: expected: Int actual: {:?}",target)
+         Object::Bool(i) => match expected {
+            Typ::BoolTyp => {},
+            _ => panic!("invalid type: expected: Bool actual: {:?}",target)
+        }
+        _ => panic!("invalid type: expected: {:?} actual: {:?}",expected,target)
     }
 }
 

@@ -199,6 +199,7 @@ fn parse_type_str(s: &str) -> Typ {
     match s {
         "Int" => Typ::IntTyp,
         "String" => Typ::StrTyp,
+        "Bool" => Typ::BoolTyp,
         s => Typ::NameTyp(s.to_string())
     }
 }
@@ -264,10 +265,10 @@ fn parse_term(tokens: &[Token]) -> (&[Token],Exp) {
             match re {
                 [Token::ELSE,r..] => {
                     let (rr,els) = parse_block(r);
-                    (rr,Exp::If(box cond,box then,Some(box els)))
+                    (rr,Exp::If(box cond,box then,box Some(els)))
                 }
                 _ => {
-                    (re,Exp::If(box cond,box then,None))
+                    (re,Exp::If(box cond,box then,box None))
                 }
             }
         }
@@ -415,14 +416,14 @@ fn parse_exp14(){
 fn parse_exp15(){
     let tokens = vec![Token::IF,Token::TRUE,Token::LBRACE,Token::TRUE,Token::RBRACE,Token::ELSE,Token::LBRACE,Token::TRUE,Token::RBRACE];
     let (rest,exp) = parse_exp(&tokens);
-    assert_eq!(exp,Exp::If(box Exp::BoolExp(true),box Stmt::Block(vec![Stmt::ExpStmt(Exp::BoolExp(true))]),Some(box Stmt::Block(vec![Stmt::ExpStmt(Exp::BoolExp(true))]))))
+    assert_eq!(exp,Exp::If(box Exp::BoolExp(true),box Stmt::Block(vec![Stmt::ExpStmt(Exp::BoolExp(true))]),box Some(Stmt::Block(vec![Stmt::ExpStmt(Exp::BoolExp(true))]))))
 }
 
 #[test]
 fn parse_exp16(){
     let tokens = vec![Token::IF,Token::TRUE,Token::LBRACE,Token::TRUE,Token::RBRACE,Token::ELSE,Token::LBRACE,Token::TRUE,Token::RBRACE];
     let (rest,exp) = parse_exp(&tokens);
-    assert_eq!(exp,Exp::If(box Exp::BoolExp(true),box Stmt::Block(vec![Stmt::ExpStmt(Exp::BoolExp(true))]),Some(box Stmt::Block(vec![Stmt::ExpStmt(Exp::BoolExp(true))]))))
+    assert_eq!(exp,Exp::If(box Exp::BoolExp(true),box Stmt::Block(vec![Stmt::ExpStmt(Exp::BoolExp(true))]),box Some(Stmt::Block(vec![Stmt::ExpStmt(Exp::BoolExp(true))]))))
 }
 
 #[test]

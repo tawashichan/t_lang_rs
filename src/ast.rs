@@ -53,13 +53,14 @@ pub enum Exp {
     BoolExp(bool),
     ArrayExp(Vec<Exp>),
     CallFunc(String,Vec<Exp>),
-    If(Box<Exp>,Box<Stmt>,Option<Box<Stmt>>),
+    If(Box<Exp>,Box<Stmt>,Box<Option<Stmt>>),
 }
 
 #[derive(Debug,Clone,PartialEq)]
 pub enum Typ {
     NameTyp(String),
     ArrayTyp(i64,Box<Typ>),
+    BoolTyp,
     StrTyp,
     IntTyp,
     VoidTyp,
