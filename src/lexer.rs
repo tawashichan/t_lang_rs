@@ -28,6 +28,8 @@ pub enum Token {
     TRUE,
     FALSE,
     MATCH,
+    GT,
+    LT,
     EOF,
 }
 
@@ -132,6 +134,8 @@ fn next_token(slice: &[char]) -> (Token, &[char]) {
             '*' => (Token::MUL, rest),
             '/' => (Token::DIV, rest),
             '!' => (Token::NOT,rest),
+            '>' => (Token::GT,rest),
+            '<' => (Token::LT,rest),
             c =>
                 if c.is_numeric() || *c == '-' {
                     let (num_str, re,is_float,_) = get_num_str(slice); //moveもmutableな参照もしてないからここでslice使える

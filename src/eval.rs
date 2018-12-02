@@ -186,6 +186,18 @@ fn call_func(name: String,exps: Vec<Exp>,env: &Env) -> Object {
             let arg2 = eval_exp(exps[1].clone(),env);
             equality(arg1, arg2)
         }
+        ">" => {
+            check_arg_num(&name,&exps);
+            let arg1 = eval_exp(exps[0].clone(),env);
+            let arg2 = eval_exp(exps[1].clone(),env);
+            gt(arg1, arg2)
+        }
+         "<" => {
+            check_arg_num(&name,&exps);
+            let arg1 = eval_exp(exps[0].clone(),env);
+            let arg2 = eval_exp(exps[1].clone(),env);
+            lt(arg1, arg2)
+        }
         _ => {
             call_decleared_func(name, exps, env)
         }    
@@ -282,6 +294,33 @@ fn equality(o1: Object,o2: Object) -> Object {
     let b = o1 == o2;
     Object::Bool(b)
 }
+
+fn gt(o1: Object,o2: Object) -> Object {
+    match o1 {
+        Object::Int(i) => match o2 {
+            Object::Int(ii) => {
+                let b = i > ii;
+                Object::Bool(b)
+            }
+            _ => panic!("")
+        }
+        _ => panic!("")
+    }
+}
+
+fn lt(o1: Object,o2: Object) -> Object {
+    match o1 {
+        Object::Int(i) => match o2 {
+            Object::Int(ii) => {
+                let b = i < ii;
+                Object::Bool(b)
+            }
+            _ => panic!("")
+        }
+        _ => panic!("")
+    }
+}
+
 
 fn check_arg_num(func_name: &str,exps: &Vec<Exp>) {
     match func_name {

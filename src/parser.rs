@@ -81,7 +81,7 @@ fn check_next(tokens: &[Token]) -> CheckNext {
     match tokens {
         [Token::LET,rest..] => CheckNext::Stmt,
         [Token::FUNCTION,rest..] => CheckNext::Stmt,
-        [Token::VAR(s),rest..] => CheckNext::Stmt,
+        //[Token::VAR(s),rest..] => CheckNext::Stmt,
         [Token::RETURN,rest..] => CheckNext::Stmt,
         [Token::STRUCT,rest..] => CheckNext::Stmt,
         [Token::LBRACE,rest..] => CheckNext::Stmt,
@@ -226,6 +226,14 @@ fn parse_exp(tokens: &[Token]) -> (&[Token],Exp) {
         [Token::EQUAL,rest..] => {
             let (res,ex) = parse_exp(rest);
             (res,Exp::CallFunc(format!("="),vec![exp,ex]))
+        },
+        [Token::GT,rest..] => {
+            let (res,ex) = parse_exp(rest);
+            (res,Exp::CallFunc(format!(">"),vec![exp,ex]))
+        },
+        [Token::LT,rest..] => {
+            let (res,ex) = parse_exp(rest);
+            (res,Exp::CallFunc(format!("<"),vec![exp,ex]))
         },
         _ => (rest,exp)
     }

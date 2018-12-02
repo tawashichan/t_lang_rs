@@ -120,7 +120,7 @@ fn sample_string5<'a>(){
     ";
     let tokens = lexer::str_to_tokens(s);
     let ast = parser::parse(&tokens);
-    let stmts = vec![FuncDec(format!("huga"), vec![(format!("foo"), IntTyp)], IntTyp, box Block(vec![Assign(Var(format!("a")), IntExp(10)),ExpStmt(Exp::VarExp(box Var("a".to_string())))])),CallProc(format!("huga"), vec![IntExp(1)])];
+    let stmts = vec![FuncDec(format!("huga"), vec![(format!("foo"), IntTyp)], IntTyp, box Block(vec![Assign(Var(format!("a")), IntExp(10)),ExpStmt(Exp::VarExp(box Var("a".to_string())))])),ExpStmt(CallFunc(format!("huga"), vec![IntExp(1)]))];
     let target_ast = init_prog(stmts);
     assert_eq!(target_ast,ast)
 }
@@ -137,7 +137,7 @@ fn sample_string<'a>() {
     ";
     let tokens = lexer::str_to_tokens(s);
     let ast = parser::parse(&tokens);
-    let stmts = vec![Assign(Var(format!("hoge")), IntExp(1)), FuncDec(format!("huga"), vec![(format!("foo"), IntTyp)], IntTyp, box Block(vec![CallProc(format!("return"), vec![CallFunc(format!("+"), vec![VarExp(box Var(format!("foo"))), IntExp(1)])])])), Assign(Var(format!("aaa")), CallFunc(format!("+"), vec![IntExp(4), CallFunc(format!("+"), vec![CallFunc(format!("huga"), vec![VarExp(box Var(format!("hoge"))), VarExp(box Var(format!("tawawa")))]), IntExp(7)])])), CallProc(format!("print"), vec![VarExp(box Var(format!("aaa")))])];
+    let stmts = vec![Assign(Var(format!("hoge")), IntExp(1)), FuncDec(format!("huga"), vec![(format!("foo"), IntTyp)], IntTyp, box Block(vec![CallProc(format!("return"), vec![CallFunc(format!("+"), vec![VarExp(box Var(format!("foo"))), IntExp(1)])])])), Assign(Var(format!("aaa")), CallFunc(format!("+"), vec![IntExp(4), CallFunc(format!("+"), vec![CallFunc(format!("huga"), vec![VarExp(box Var(format!("hoge"))), VarExp(box Var(format!("tawawa")))]), IntExp(7)])])), ExpStmt(CallFunc(format!("print"), vec![VarExp(box Var(format!("aaa")))]))];
     let target_ast = init_prog(stmts);
     assert_eq!(target_ast,ast)
 }
