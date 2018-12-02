@@ -14,8 +14,8 @@ pub struct Parser<'a>{
     pub error: Option<ParseError<'a>>
 }
 
-pub fn parse(tokens: &[Token]) -> Prog {
+/*pub fn parse(tokens: &[Token]) -> Prog {
     let parser = Parser{current_location: 0,peak_location: 0,tokens,error: None};
     Prog{ stmts: vec![] }
-}
+}*/
 

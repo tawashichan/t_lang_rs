@@ -15,6 +15,7 @@ pub fn start_itl() {
             let l = line.unwrap();
             if l == "" {
                 let tokens = lexer::str_to_tokens(&s);
+                println!("{:?}",tokens);
                 let ast = parser::parse(&tokens);
                 println!("{:?}", ast);
                 let (obj,e) = eval::eval_prog(ast,env);

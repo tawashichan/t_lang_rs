@@ -41,6 +41,7 @@ pub enum Stmt {
     FuncDec(String,Vec<(String,Typ)>,Typ,Box<Stmt>),
     StructDec(String,HashMap<String,Typ>),
     ExpStmt(Exp), // 式文
+    Return(Exp),
     NilStmt
 }
 
@@ -50,6 +51,7 @@ pub enum Exp {
     StrExp(String),
     IntExp(i64),
     BoolExp(bool),
+    ArrayExp(Vec<Exp>),
     CallFunc(String,Vec<Exp>),
     If(Box<Exp>,Box<Stmt>,Option<Box<Stmt>>),
 }
@@ -63,4 +65,10 @@ pub enum Typ {
     VoidTyp,
 }
 
+
+pub fn init_prog(stmts: Vec<Stmt>) -> Prog {
+    Prog {
+        stmts
+    }
+} 
 

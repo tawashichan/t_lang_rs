@@ -1,7 +1,7 @@
 /// とりあえずインタプリタ
 /// 型検査と環境の設定を行う
 
-use ast::{Typ,Exp,Stmt,Prog,Var};
+use ast::{Typ,Exp,Stmt,Prog,Var,init_prog};
 use std::collections::HashMap;
 
 #[derive(Clone,Debug)]
@@ -16,6 +16,7 @@ pub enum Object {
     Int(i64),
     String(String),
     Bool(bool),
+    Struct(String,HashMap<String,Object>),
     NoneObj,
 }
 
@@ -157,7 +158,8 @@ fn call_decleared_func(name: String,args: Vec<Exp>,env: Env) -> (Object,Env) {
     (Object::NoneObj,env)
 }
 
-fn eval_func_content(content: Stmt,env: Env) -> Object {
+fn eval_func_content(content: Stmt,env: &Env) -> Object {
+    Object::NoneObj
 }
 
 
@@ -256,7 +258,7 @@ fn search_val(name: String,env: &Env) -> Option<Object> {
 
 #[test]
 fn check_func(){
-    let prog = Prog{stmts: vec![Stmt::ExpStmt(Exp::IntExp(10))]};
+    let prog = init_prog(vec![Stmt::ExpStmt(Exp::IntExp(10))]);
     let (obj,_e) = eval_prog(prog,init_env());
     assert_eq!(obj,Object::Int(10))
 }

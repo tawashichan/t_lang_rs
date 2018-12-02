@@ -1,15 +1,20 @@
 use std::collections::HashMap;
-use ast::{Prog,Exp,Stmt,Var,Typ};
+use ast::{Prog,Exp,Stmt,Var,Typ,init_prog};
 use lexer::{Token};
 
-
+#[derive(Debug)]
+enum CheckNext {
+    Stmt,
+    Expr,
+    End,
+}
 
 //現在読み取り中の位置を保持するmutableな構造体使った方が確実に実装は楽
 
 pub fn parse(tokens: &[Token]) -> Prog {
-    let(rest,stmts) = parse_stmts(tokens,&mut vec![]);
+    let (rest,stmts) = parse_stmts(tokens,&mut vec![]);     
     if rest.len() > 0 { panic!("あまったよ {:?}",rest) }
-    Prog{ stmts }
+    init_prog(stmts)
 }
 
 fn parse_block(tokens: &[Token]) -> (&[Token],Stmt) {
@@ -18,7 +23,7 @@ fn parse_block(tokens: &[Token]) -> (&[Token],Stmt) {
             let (res,stmts) = parse_stmts(rest,&mut vec![]);
             match res {
                 [Token::RBRACE,re..] => (re,Stmt::Block(stmts)),
-                _ => panic!()
+                _ => panic!("{:?}",res)
             }
         }
         _ => panic!()
@@ -26,14 +31,21 @@ fn parse_block(tokens: &[Token]) -> (&[Token],Stmt) {
 }
 
 fn parse_stmts<'a>(tokens: &'a[Token],stmts: &mut Vec<Stmt>) -> (&'a[Token],Vec<Stmt>) {
-    match tokens {
-        [Token::LBRACE,rest..] => parse_stmts(rest,&mut vec![]), // ここあまりきれいじゃない...
-        [Token::RBRACE,rest..] => (rest,stmts.to_vec()),
-        &[] => (&[],stmts.to_vec()),
-        _ => {
-            let (res,stmt) = parse_stmt(tokens);
+    let next = check_next(tokens);
+    match next {
+        CheckNext::Stmt => {
+            let (rest,stmt) = parse_stmt(tokens);
             stmts.push(stmt);
-            parse_stmts(res,stmts)
+            parse_stmts(rest, stmts)
+        },
+        CheckNext::Expr => {
+            let (rest,exp) = parse_exp(tokens);
+            let exp_stmt = Stmt::ExpStmt(exp);
+            stmts.push(exp_stmt);
+            parse_stmts(rest, stmts)
+        },
+        CheckNext::End => {
+            (tokens,stmts.to_vec())
         }
     }
 }
@@ -54,12 +66,36 @@ fn parse_stmt(tokens: &[Token]) -> (&[Token],Stmt) {
             (res,Stmt::CallProc(format!("return"),vec![exp]))
         }
         [Token::STRUCT,rest..] => parse_struct(tokens),
-        _ => {
-            let (rest,exp) = parse_exp(tokens);
-            (rest,Stmt::ExpStmt(exp))
-        }
+        [Token::LBRACE,rest..] => {
+            let (res,block) = parse_block(tokens);
+            (res,block)
+        },
+        _ => panic!("{:?}",tokens)
+    } 
+}
+
+fn check_next(tokens: &[Token]) -> CheckNext {
+    match tokens {
+        [Token::LET,rest..] => CheckNext::Stmt,
+        [Token::FUNCTION,rest..] => CheckNext::Stmt,
+        [Token::VAR(s),rest..] => CheckNext::Stmt,
+        [Token::RETURN,rest..] => CheckNext::Stmt,
+        [Token::STRUCT,rest..] => CheckNext::Stmt,
+        [Token::LBRACE,rest..] => CheckNext::Stmt,
+        [Token::LPAR,rest..] => CheckNext::Expr,
+        [Token::IF,rest..] => CheckNext::Expr,
+        [Token::INT(i),rest..] => CheckNext::Expr,
+        [Token::VAR(s),Token::LPAR,rest..] => CheckNext::Expr,
+        [Token::VAR(s),rest..] => CheckNext::Expr,
+        [Token::STRING(s), rest..] => CheckNext::Expr,
+        [Token::NOT,rest..] => CheckNext::Expr,
+        [Token::TRUE,rest..] => CheckNext::Expr,
+        [Token::FALSE,rest..] => CheckNext::Expr,
+        [Token::LBRACKET,rest..] => CheckNext::Expr,
+        _ => CheckNext::End,
     }
 }
+
 
 
 fn parse_struct(tokens: &[Token]) -> (&[Token],Stmt){
@@ -96,8 +132,8 @@ fn parse_function(tokens: &[Token]) -> (&[Token],Stmt) {
         [Token::FUNCTION,Token::VAR(s),rest..] => {
             let (res,args) = parse_func_def_args(rest);
             let (re,typ) = parse_type(res);
-            let (r,stmts) = parse_stmts(re,&mut vec![]);
-            (r,Stmt::FuncDec(s.clone(),args,typ,box Stmt::Block(stmts)))
+            let (r,block) = parse_block(re);
+            (r,Stmt::FuncDec(s.clone(),args,typ,box block))
         }
         _ => panic!()
     }
@@ -145,11 +181,14 @@ fn parse_func_call_args(tokens: &[Token]) -> (&[Token],Vec<Exp>) {
 }
 
 fn parse_func_call_arg<'a>(tokens: &'a [Token], args: &mut Vec<Exp>) -> (&'a [Token], Vec<Exp>) {
-    let (rest, exp) = parse_exp(tokens);
-    args.push(exp);
-    match rest {
-        [Token::COMMA, res..] => parse_func_call_arg(res, args),
-        _ => (rest, args.to_vec())
+    match tokens {
+        [Token::RPAR,rest..] => (tokens, args.to_vec()),
+        [Token::COMMA, rest..] => parse_func_call_arg(rest, args),
+        _ => {
+            let (rest, exp) = parse_exp(tokens);
+            args.push(exp);
+            parse_func_call_arg(rest, args)
+        }
     }
 }
 
@@ -218,14 +257,14 @@ fn parse_term(tokens: &[Token]) -> (&[Token],Exp) {
         }
         [Token::IF,rest..] => {
             let (res,cond) = parse_exp(rest);
-            let (re,then) = parse_stmts(res,&mut vec![]);
+            let (re,then) = parse_block(res);
             match re {
                 [Token::ELSE,r..] => {
-                    let (rr,els) = parse_stmts(r,&mut vec![]);
-                    (rr,Exp::If(box cond,box Stmt::Block(then),Some(box Stmt::Block(els))))
+                    let (rr,els) = parse_block(r);
+                    (rr,Exp::If(box cond,box then,Some(box els)))
                 }
                 _ => {
-                    (re,Exp::If(box cond,box Stmt::Block(then),None))
+                    (re,Exp::If(box cond,box then,None))
                 }
             }
         }
@@ -251,8 +290,24 @@ fn parse_term(tokens: &[Token]) -> (&[Token],Exp) {
         [Token::FALSE,rest..] => {
             (rest,Exp::BoolExp(false))
         }
+        [Token::LBRACKET,rest..] => {
+            let (rest,array) = parse_array(rest,&mut vec![]);
+            (rest,Exp::ArrayExp(array))
+        }
         _ => {
-            panic!()
+            panic!("{:?}",tokens)
+        }
+    }
+}
+
+fn parse_array<'a>(tokens: &'a[Token],acm: &mut Vec<Exp>) -> (&'a[Token],Vec<Exp>) {
+    match tokens {
+        [Token::RBRACKET,rest..] => (tokens,acm.clone()),
+        [Token::COMMA,rest..] => parse_array(rest, acm),
+        _ => {
+            let (rest,exp) = parse_exp(tokens);
+            acm.push(exp);
+            parse_array(rest, acm)
         }
     }
 }
@@ -381,12 +436,34 @@ fn parse_exp18() {
     let tokens = vec![Token::INT(10), Token::INT(11)];
     let (rest, exp) = parse_exp(&tokens);
     assert_eq!(exp,Exp::IntExp(10));
+}
+
+#[test]
+fn parse_exp19() {
+    let tokens = vec![Token::LBRACKET,Token::INT(10), Token::COMMA,Token::INT(11),Token::RBRACKET];
+    let (rest, exp) = parse_exp(&tokens);
+    assert_eq!(exp,Exp::ArrayExp(vec![Exp::IntExp(10),Exp::IntExp(11)]));
     assert_eq!(rest.len(),1);
 }
+
 
 #[test]
 fn parse_exp_ex1(){
     let tokens = vec![Token::LPAR,Token::LPAR,Token::INT(1),Token::RPAR,Token::DIV,Token::INT(1),Token::MINUS,Token::INT(1),Token::RPAR];
     let (rest,exp) = parse_exp(&tokens);
     assert_eq!(exp,Exp::CallFunc(format!("-"),vec![Exp::CallFunc(format!("/"),vec![Exp::IntExp(1),Exp::IntExp(1)]),Exp::IntExp(1)]))
+}
+
+#[test]
+fn parse_stmts1() {
+    let tokens = vec![Token::LET,Token::VAR("hoge".to_string()), Token::EQUAL,Token::INT(5),Token::LET,Token::VAR("hoge".to_string()),Token::EQUAL,Token::INT(8)];
+    let (rest, stmts) = parse_stmts(&tokens,&mut vec![]);
+    assert_eq!(stmts,vec![Stmt::Assign(Var::Var("hoge".to_string()),Exp::IntExp(5)),Stmt::Assign(Var::Var("hoge".to_string()),Exp::IntExp(8))]);
+}
+
+#[test]
+fn parse_stmts2() {
+    let tokens = vec![Token::LET,Token::VAR("hoge".to_string()), Token::EQUAL,Token::INT(5),Token::LBRACE,Token::LET,Token::VAR("hoge".to_string()),Token::EQUAL,Token::INT(8),Token::RBRACE];
+    let (rest, stmts) = parse_stmts(&tokens,&mut vec![]);
+    assert_eq!(stmts,vec![Stmt::Assign(Var::Var("hoge".to_string()),Exp::IntExp(5)),Stmt::Block(vec![Stmt::Assign(Var::Var("hoge".to_string()),Exp::IntExp(8))])]);
 }
