@@ -81,6 +81,23 @@ fn eval_stmt(stmt: Stmt,mut env: Env) -> (Object,Env) {
     }
 }
 
+fn eval_block(block: Stmt,env: &Env) -> Object {
+    match block {
+        Stmt::Block(stmts) =>
+            match &stmts[..] {
+                [Stmt::Return(exp),rest..] => {
+                    eval_exp(exp.clone(), env)
+                },
+                [last] => {
+                    let (obj,_) = eval_stmt(last.clone(), env.clone());
+                    obj
+                },
+                _ => Object::NoneObj
+            }
+        _ => panic!("{:?}",block)
+    }
+}
+
 fn eval_exp(exp: Exp,env: &Env) -> Object {
     match exp {
         Exp::BoolExp(b) => Object::Bool(b),
@@ -98,13 +115,6 @@ fn eval_exp(exp: Exp,env: &Env) -> Object {
             }
         }
         _ => Object::Int(0)
-    }
-}
-
-fn eval_block(block: Stmt,env: Env) -> (Object,Env) {
-    match block {
-        Stmt::Block(stmts) => (Object::NoneObj,env),
-        _ => (Object::NoneObj,env)
     }
 }
 
@@ -160,8 +170,7 @@ fn call_decleared_func(name: String,args: Vec<Exp>,env: &Env) -> Object {
         panic!("invalid length of arguments: def {:?} call {:?}",func.args,args)
     }
     let e = bind_args(func.args, args, &mut local_env);
-    println!("{:?}",e);
-    Object::NoneObj
+    eval_block(func.content, e)
 }
 
 fn bind_args(def_args: Vec<(String,Typ)>,call_args: Vec<Exp>,env: &mut Env) -> &Env {
@@ -175,11 +184,6 @@ fn bind_args(def_args: Vec<(String,Typ)>,call_args: Vec<Exp>,env: &mut Env) -> &
         env.vars.insert(n,c);
     }
     env
-}
-
-
-fn eval_func_content(content: Stmt,env: &Env) -> Object {
-    Object::NoneObj
 }
 
 
@@ -299,6 +303,13 @@ fn check_assign(){
     let (obj,e) = eval_stmt(stmt,init_env());
     println!("{:?}",e);
     assert_eq!(obj,Object::NoneObj)
+}
+
+#[test]
+fn eval_block1(){
+    let prog = init_prog(vec![Stmt::ExpStmt(Exp::IntExp(10))]);
+    let (obj,_e) = eval_prog(prog,init_env());
+    assert_eq!(obj,Object::Int(10))
 }
 
 

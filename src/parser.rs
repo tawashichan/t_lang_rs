@@ -446,7 +446,6 @@ fn parse_exp19() {
     let tokens = vec![Token::LBRACKET,Token::INT(10), Token::COMMA,Token::INT(11),Token::RBRACKET];
     let (rest, exp) = parse_exp(&tokens);
     assert_eq!(exp,Exp::ArrayExp(vec![Exp::IntExp(10),Exp::IntExp(11)]));
-    assert_eq!(rest.len(),1);
 }
 
 
