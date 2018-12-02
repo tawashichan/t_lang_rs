@@ -8,7 +8,7 @@ use eval;
 
 //interactive tawashi
 pub fn start_itl() {
-    println!("start itl");
+    println!("start repl");
     let args: Vec<String> = env::args().collect();
     let len = args.len();
     match len {
@@ -31,7 +31,7 @@ fn exec_file(filename: &str){
 
 fn init_repl(){
     loop {
-        let mut s = String::new();
+        let mut s = "".to_string();
         let stdin = std::io::stdin();
         let mut env = eval::init_env();
         for line in stdin.lock().lines() {
@@ -43,8 +43,8 @@ fn init_repl(){
                 println!("{:?}", ast);
                 let (obj,e) = eval::eval_prog(ast,env);
                 env = e;
-                println!("{:?}",obj);
-                println!("{:?}",env);
+                println!("result: {:?}",obj);
+                println!("env: {:?}",env);
                 s = format!("");
             } else {
                 s = s + &l;

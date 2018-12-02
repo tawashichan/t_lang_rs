@@ -111,6 +111,21 @@ fn sample_string6<'a>(){
 }
 
 #[test]
+fn sample_string5<'a>(){
+    let s = "fun huga(foo Int) Int {
+        let a = 10
+        a
+     }
+     huga(1)
+    ";
+    let tokens = lexer::str_to_tokens(s);
+    let ast = parser::parse(&tokens);
+    let stmts = vec![FuncDec(format!("huga"), vec![(format!("foo"), IntTyp)], IntTyp, box Block(vec![Assign(Var(format!("a")), IntExp(10)),ExpStmt(Exp::VarExp(box Var("a".to_string())))])),CallProc(format!("huga"), vec![IntExp(1)])];
+    let target_ast = init_prog(stmts);
+    assert_eq!(target_ast,ast)
+}
+
+#[test]
 fn sample_string<'a>() {
     let s = "
         let hoge = 1
@@ -126,5 +141,4 @@ fn sample_string<'a>() {
     let target_ast = init_prog(stmts);
     assert_eq!(target_ast,ast)
 }
-
 

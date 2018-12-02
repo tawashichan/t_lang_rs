@@ -23,10 +23,10 @@ pub enum Object {
 //関数や変数を管理
 //コピー発生しまくりなのでどっかで参照になおす
 #[derive(Clone,Debug)]
-pub struct Env{
+pub struct Env<'a>{
     vars: HashMap<String,Object>,
     functions: HashMap<String,FuncContent>,
-    prev: Option<Box<Env>>
+    prev: Option<&'a Env<'a>>
 }
 
 
@@ -36,7 +36,7 @@ pub fn eval_prog(p: Prog,env: Env) -> (Object,Env) {
     )
 }
 
-pub fn init_env() -> Env {
+pub fn init_env<'a>() -> Env<'a> {
      Env{
         vars: HashMap::new(),
         functions: HashMap::new(),
@@ -44,11 +44,19 @@ pub fn init_env() -> Env {
     }
 } 
 
+fn local_env<'a>(prev: &'a Env<'a>) -> Env<'a> {
+    Env {
+        vars: HashMap::new(),
+        functions: HashMap::new(),
+        prev: Some(prev)
+    }
+}
+
 fn eval_stmt(stmt: Stmt,mut env: Env) -> (Object,Env) {
     match stmt {
         Stmt::CallProc(s,exps) => (eval_proc(s,exps,&env),env),
         Stmt::Block(stmts) => {
-            let local_env = env.clone();
+            let local_env = local_env(&env);
             let (obj,e) = stmts.into_iter().fold((Object::NoneObj,local_env),  |(obj,e),current|
                 eval_stmt(current,e)
             );
@@ -69,24 +77,32 @@ fn eval_stmt(stmt: Stmt,mut env: Env) -> (Object,Env) {
             (Object::NoneObj,env)
         }
         Stmt::ExpStmt(exp) => (eval_exp(exp,&env),env),
-        _ => (Object::NoneObj,env)
+        _ => panic!("{:?}",stmt)
     }
 }
 
 fn eval_block(block: Stmt,env: &Env) -> Object {
     match block {
-        Stmt::Block(stmts) =>
-            match &stmts[..] {
-                [Stmt::Return(exp),rest..] => {
-                    eval_exp(exp.clone(), env)
-                },
-                [last] => {
-                    let (obj,_) = eval_stmt(last.clone(), env.clone());
-                    obj
-                },
-                _ => Object::NoneObj
-            }
+        Stmt::Block(stmts) => eval_block_sub(&stmts, env),
         _ => panic!("{:?}",block)
+    }
+}
+
+fn eval_block_sub(stmts: &[Stmt],env: &Env) -> Object {
+   match &stmts[..] {
+        [Stmt::Return(exp),rest..] => {
+              eval_exp(exp.clone(), env)
+        },
+        [last] => {
+            let (obj,_) = eval_stmt(last.clone(), env.clone());
+            obj
+        },
+        [first,rest..] => {
+            let (obj,env) = eval_stmt(first.clone(), env.clone());
+            eval_block_sub(rest, &env)
+        }
+        [] => Object::NoneObj,
+        _ => panic!("{:?}",stmts)
     }
 }
 
@@ -180,20 +196,19 @@ fn call_func(name: String,exps: Vec<Exp>,env: &Env) -> Object {
 
 fn call_decleared_func(name: String,args: Vec<Exp>,env: &Env) -> Object {
     let func = search_func(name,&env).expect("no such function");
-    let mut local_env = env.clone();
+    let mut local_env = local_env(env);
     let def_args_len = func.args.len();
     let call_args_len = args.len();
     if def_args_len != call_args_len {
         panic!("invalid length of arguments: def {:?} call {:?}",func.args,args)
     }
     let e = bind_args(func.args, args, &mut local_env);
-    println!("{:?}",e);
     let obj = eval_block(func.content, e);
     check_type(&obj, &func.return_type);
     obj
 }
 
-fn bind_args(def_args: Vec<(String,Typ)>,call_args: Vec<Exp>,env: &mut Env) -> &Env {
+fn bind_args<'a>(def_args: Vec<(String,Typ)>,call_args: Vec<Exp>,env: &'a mut Env<'a>) -> &'a Env<'a> {
     let mut objs = vec![];
     for exp in call_args.into_iter() {
         let obj = eval_exp(exp, &env);

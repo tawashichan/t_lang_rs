@@ -1,4 +1,4 @@
-#[derive(Clone,Debug)]
+#[derive(Clone,Debug,PartialEq)]
 pub enum Token {
     STRING(String),
     INT(i64),
@@ -117,6 +117,7 @@ fn next_token(slice: &[char]) -> (Token, &[char]) {
         [first, rest..] => match first {
             '\n' => next_token(rest),
             ' ' => next_token(rest),
+            '\t' => next_token(rest),
             '=' => (Token::EQUAL, rest),
             '(' => (Token::LPAR, rest),
             ')' => (Token::RPAR, rest),
@@ -180,3 +181,17 @@ pub fn str_to_tokens(str: &str) -> Vec<Token> {
     get_tokens(&str_vec,&mut vec![]).to_owned()
 }
 
+
+#[test]
+fn str_to_tokens1<'a>(){
+    let s = 
+    "fun a() Int {
+        let b = 10
+        b
+    }
+    a()
+    ";
+    let tokens = str_to_tokens(s);
+    let target_tokens = vec![Token::FUNCTION, Token::VAR("a".to_string()), Token::LPAR, Token::RPAR, Token::VAR("Int".to_string()), Token::LBRACE, Token::LET, Token::VAR("b".to_string()), Token::EQUAL, Token::INT(10),Token::VAR("b".to_string()), Token::RBRACE,Token::VAR("a".to_string()),Token::LPAR,Token::RPAR];
+    assert_eq!(target_tokens,tokens)
+}
