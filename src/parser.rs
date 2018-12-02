@@ -467,3 +467,10 @@ fn parse_stmts2() {
     let (rest, stmts) = parse_stmts(&tokens,&mut vec![]);
     assert_eq!(stmts,vec![Stmt::Assign(Var::Var("hoge".to_string()),Exp::IntExp(5)),Stmt::Block(vec![Stmt::Assign(Var::Var("hoge".to_string()),Exp::IntExp(8))])]);
 }
+
+#[test]
+fn parse_stmts3() {
+    let tokens = vec![Token::LET,Token::VAR("hoge".to_string()), Token::EQUAL,Token::VAR("huga".to_string())];
+    let (rest, stmts) = parse_stmts(&tokens,&mut vec![]);
+    assert_eq!(stmts,vec![Stmt::Assign(Var::Var("hoge".to_string()),Exp::VarExp(box Var::Var("huga".to_string())))]);
+}

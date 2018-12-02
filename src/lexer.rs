@@ -27,6 +27,7 @@ pub enum Token {
     NOT,
     TRUE,
     FALSE,
+    MATCH,
     EOF,
 }
 
@@ -82,6 +83,7 @@ fn get_keyword_sub(str_vec: &[char], acm: String) -> (Token, &[char]) {
                 "==" => (Token::EQUAL,str_vec),
                 "true" => (Token::TRUE, str_vec),
                 "false" => (Token::FALSE, str_vec),
+                "match" => (Token::MATCH, str_vec),
                 s =>  (Token::VAR(s.to_string()),str_vec)
             }
     }
