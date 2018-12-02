@@ -170,7 +170,9 @@ fn call_decleared_func(name: String,args: Vec<Exp>,env: &Env) -> Object {
         panic!("invalid length of arguments: def {:?} call {:?}",func.args,args)
     }
     let e = bind_args(func.args, args, &mut local_env);
-    eval_block(func.content, e)
+    let obj = eval_block(func.content, e);
+    check_type(&obj, &func.return_type);
+    obj
 }
 
 fn bind_args(def_args: Vec<(String,Typ)>,call_args: Vec<Exp>,env: &mut Env) -> &Env {
