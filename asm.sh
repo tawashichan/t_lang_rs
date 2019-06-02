@@ -1,0 +1,1 @@
+gcc -o code code.s

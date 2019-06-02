@@ -1,23 +1,15 @@
 /// とりあえずインタプリタ
 /// 型検査と環境の設定を行う
-
-use ast::{Typ,Exp,Stmt,Prog,Var,init_prog};
 use std::collections::HashMap;
+use crate::ast::{Typ,Exp,Stmt,Prog,Var,init_prog};
+use crate::object::{Object};
+
 
 #[derive(Clone,Debug)]
 pub struct FuncContent {
     args: Vec<(String,Typ)>,
     content: Stmt,
     return_type: Typ
-}
-
-#[derive(Clone,Debug,PartialEq)]
-pub enum Object {
-    Int(i64),
-    String(String),
-    Bool(bool),
-    Struct(String,HashMap<String,Object>),
-    NoneObj,
 }
 
 //関数や変数を管理
@@ -192,7 +184,7 @@ fn call_func(name: String,exps: Vec<Exp>,env: &Env) -> Object {
             let arg2 = eval_exp(exps[1].clone(),env);
             gt(arg1, arg2)
         }
-         "<" => {
+        "<" => {
             check_arg_num(&name,&exps);
             let arg1 = eval_exp(exps[0].clone(),env);
             let arg2 = eval_exp(exps[1].clone(),env);

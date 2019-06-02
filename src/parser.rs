@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-use ast::{Prog,Exp,Stmt,Var,Typ,init_prog};
-use lexer::{Token};
+use crate::ast::{Prog,Exp,Stmt,Var,Typ,init_prog};
+use crate::lexer::{Token};
 
 #[derive(Debug)]
 enum CheckNext {
@@ -77,6 +77,7 @@ fn parse_stmt(tokens: &[Token]) -> (&[Token],Stmt) {
     } 
 }
 
+// 先読みを共通化したほうが良いかもしれない
 fn check_next(tokens: &[Token]) -> CheckNext {
     match tokens {
         [Token::LET,rest..] => CheckNext::Stmt,

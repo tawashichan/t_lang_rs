@@ -2,9 +2,9 @@ use std::io::prelude::*;
 use std::fs::File;
 use std::env;
 
-use parser;
-use lexer;
-use eval;
+use crate::parser;
+use crate::lexer;
+use crate::eval;
 
 //interactive tawashi
 pub fn start_itl() {
@@ -43,8 +43,8 @@ fn init_repl(){
                 println!("{:?}", ast);
                 let (obj,e) = eval::eval_prog(ast,env);
                 env = e;
-                println!("result: {:?}",obj);
                 println!("env: {:?}",env);
+                println!("result: {:?}",obj);
                 s = format!("");
             } else {
                 s = s + &l;
@@ -56,10 +56,10 @@ fn init_repl(){
 fn execute(s: &str) {
     let mut env = eval::init_env();
     let tokens = lexer::str_to_tokens(&s);
-    println!("{:?}",tokens);
+    //println!("{:?}",tokens);
     let ast = parser::parse(&tokens);
-    println!("{:?}", ast);
+    //println!("{:?}", ast);
     let (obj,e) = eval::eval_prog(ast,env);
-    println!("{:?}",obj);
-    println!("{:?}",e);
+    println!("result: {:?}",obj);
+    //println!("env: {:?}",e);
 }

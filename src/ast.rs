@@ -73,3 +73,12 @@ pub fn init_prog(stmts: Vec<Stmt>) -> Prog {
     }
 } 
 
+impl Exp {
+    pub fn size(&self) -> i32 {
+        match self {
+            Exp::IntExp(_) => 4,
+            Exp::BoolExp(_) => 1,
+            _ => 1
+        }
+    }
+}

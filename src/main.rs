@@ -1,25 +1,42 @@
 #![feature(slice_patterns)]
 #![feature(box_patterns)]
 #![feature(box_syntax)]
-#![feature(nll)]
 
 mod ast;
 mod lexer;
 mod parser;
 mod eval;
 mod interactive;
-mod proc_parser;
+mod vm;
+mod compiler;
+mod object;
+mod gen_x86;
 
 
-use ast::*;
-use ast::Stmt::*;
-use ast::Exp::*;
-use ast::Typ::*;
-use ast::Var::*;
-use lexer::Token;
+use crate::ast::*;
+use crate::ast::Stmt::*;
+use crate::ast::Exp::*;
+use crate::ast::Typ::*;
+use crate::ast::Var::*;
+use crate::lexer::Token;
+use std::fs::File;
+use std::io::prelude::*;
 
 fn main() {
-    interactive::start_itl();
+    let code = "let a = 1
+    a + 1
+    ";
+    let code = "10 + 1";
+    let tokens = lexer::str_to_tokens(code);
+    let ast = parser::parse(&tokens);
+    let result = gen_x86::code_gen(ast);
+    write_to_file(&result);
+}
+
+fn write_to_file(s: &str) ->  Result<(), Box<std::error::Error>> {
+    let mut file = File::create("code.s")?;
+    file.write_all(s.as_bytes())?;
+    Ok(())
 }
 
 #[test]
