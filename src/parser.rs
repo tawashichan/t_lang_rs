@@ -57,13 +57,13 @@ fn parse_stmt(tokens: &[Token]) -> (&[Token],Stmt) {
             (res,Stmt::Assign(Var::Var(s.clone()),exp))
         }
         [Token::FUNCTION,rest..] => parse_function(tokens),
+        [Token::RETURN,rest..] => {
+            let (res,exp) = parse_exp(rest);
+            (res,Stmt::Return(exp))
+        }
         [Token::VAR(s),Token::LPAR,rest..] => {
             let (res,args) = parse_func_call_args(tokens);
             (res,Stmt::CallProc(s.clone(),args))
-        }
-        [Token::RETURN,rest..] => {
-            let (res,exp) = parse_exp(rest);
-            (res,Stmt::CallProc(format!("return"),vec![exp]))
         }
         [Token::STRUCT,rest..] => parse_struct(tokens),
         [Token::LBRACE,rest..] => {
